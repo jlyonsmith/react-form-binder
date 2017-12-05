@@ -1,0 +1,9 @@
+{
+  "presets": [
+    [ "env", { "targets": { "node": 8, "chrome": 60, "uglify": true } }]
+  ],
+  "plugins": [
+    "transform-class-properties",
+    "transform-object-rest-spread"
+  ]
+}

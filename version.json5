@@ -1,0 +1,37 @@
+{
+  filenames: [
+    "package.json",
+    "scratch/version.tag.txt",
+    "scratch/version.desc.txt"
+  ],
+  buildFormat: "full",
+  tags: {
+    major: 0,
+    minor: 0,
+    patch: 0,
+    build: 20171205,
+    revision: 0,
+    tz: "America/Los_Angeles",
+    startYear: "2017"
+  },
+  fileTypes: [
+    {
+      name: "Node Package",
+      glob: "**/package.json",
+      update: {
+        search: "^(?<begin> *\"version\" *: *\")\\d+\\.\\d+\\.\\d+(?<end>\" *, *)$",
+        replace: "${begin}${major}.${minor}.${patch}${end}"
+      }
+    },
+    {
+      name: "Commit tag file",
+      glob: "**/*.tag.txt",
+      write: "v${major}.${minor}.${patch}"
+    },
+    {
+      name: "Commit tag description file",
+      glob: "**/*.desc.txt",
+      write: "Version ${major}.${minor}.${patch}-${build}.${revision}"
+    }
+  ]
+}

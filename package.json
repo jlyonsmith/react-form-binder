@@ -1,0 +1,52 @@
+{
+  "name": "react-form-binder",
+  "version": "1.0.2",
+  "description": "A data binding controller for React forms",
+  "main": "dist/index.js",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "babel src -d dist -s",
+    "test": "jest",
+    "start": "monzilla 'src/**/*.js' -- npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jamoki/react-data-binder.git"
+  },
+  "keywords": [
+    "react",
+    "validated",
+    "binding",
+    "validator",
+    "component"
+  ],
+  "jest": {
+    "testPathIgnorePatterns": [
+      "node_modules/",
+      "scratch/"
+    ]
+  },
+  "author": "John Lyon-Smith",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jamoki/react-data-binder/issues"
+  },
+  "homepage": "https://github.com/Jamoki/react-data-binder#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-preset-env": "^1.5.2",
+    "jest": "^20.0.4",
+    "monzilla": "^1.0.5"
+  },
+  "dependencies": {
+    "eventemitter3": "^2.0.3",
+    "prop-types": "^15.5.10",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4"
+  }
+}

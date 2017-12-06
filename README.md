@@ -3,17 +3,16 @@
 A data binding controller for React forms components. Basically, an object that manages `input`, `select`, `button` and other elements within an HTML `form`.
 
 - As part of a controlled component it will manage the `value` for an HTML form element
-- Automatically maps the fields of an object to the `named` components in the form.
-- Tracks the initial values of the fields
+- Automatically maps the field names to equivalently named bound components in the form.
+- Tracks the initial values of the object fields
 - Allows `initValue` to initialize fields not present in the original object
 - Supports mapping objects containing nested objects into the form elements
 - On `onSubmit` can return an object containing just the modified fields or all fields
 - Can specify certain fields as `alwaysGet` to always include them when fetching just modified fields
 - Tracks an `_id` value for the object independently of form elements
 - Allows for `noValue` form elements such as `OK` and `Cancel` buttons that can change state in response to modifications to the form
-- Allows for a field to always be
 - Manages `valid`, `disabled`, `visible`, `modified`, and `readOnly` states for the component
-- Will ensure that other components in the form update in accordance with changes to a specific element
+- Will ensure that other components in the form update in accordance with changes to another component
 - Tracks `anyModified` and `allValid` values for the entire form
 - Fires an event if the `anyModified` value changes
 
@@ -21,10 +20,10 @@ A data binding controller for React forms components. Basically, an object that 
 
 To bind a `Form`:
 
-1. Add the `bindings` object as a static property of the class, ensuring an `isValid` at minimum. `isValid` can be any truthy value or a function returning a truthy value.  Mark a field as `noValue` fields if it does not map to a field in the data object.
+1. Add the `bindings` object as a static property of the class, ensuring an `isValid` at a minimum. `isValid` can be any truthy value or a function returning a truthy value.  Mark a field as `noValue` fields if it does not map to a field in the data object.
 2. Construct the `FormBinder` object in the form component `constructor()` add assign it to a  `this.binder` variable
-3. Make all form fields use a _bound component_. See below for how to make these. Note, remove existing `onChange` handlers and add a `name` and `binder` property.
-4. In the forms `onSubmit` event handler method add `e.preventDefault()` (to avoid automatic form processing by HTML) and a call to  `this.binder.getModifiedFieldValues()`.
+3. Associate form fields with a _bound component_ as desired. See below for how to make these. NOTE: remove existing `onChange` handlers if converting from a non-bound component and add a `name` and `binder` property.
+4. In the forms `onSubmit` event handler method add `e.preventDefault()` (to avoid automatic form processing by HTML) and a call to `this.binder.getModifiedFieldValues()`.
 
 ## The `FormBinder` class
 
@@ -35,12 +34,12 @@ class MyFormComponent extends React.Component {
   ...
   static bindings = {
   	email: {
-  	  isValid: (r, v) => (v !== ''),
-  	  isDisabled: (r) => (!!r.id)
+  	  isValid: (b, v) => (regExpPattern.email.test(v)),
+  	  isDisabled: (b) => (!!b._id)
   	},
   	changeEmail: {
   	  nonValue: true,
-  	  isDisabled: (r) => (!!r.id === false)
+  	  isDisabled: (b) => (!!b._id === false)
   	},
   	...
   }
@@ -107,7 +106,7 @@ Assigning the binder itself to the form state allows you to change the `this.sta
 
 This would be useful if you allow a forms contents to be changed by some other onscreen element, such as a list box.
 
-#### `getFieldState(name)`
+#### `binder.getFieldState(name)`
 
 Called to get the state for a named field. Can be used by bound components, in `binding` callback functions and elsewhere.  The for fields with a value, it looks like:
 
@@ -124,21 +123,32 @@ Called to get the state for a named field. Can be used by bound components, in `
 
 For `noValue` fields the `value` and `modified` fields will not be present.
 
-#### `updateFieldValue(name, newValue)`
+#### `binder.updateFieldValue(name, newValue)`
 
 Called to update the value of the field by name.  Typically used in bound components in response to user input.  Will cause the state for all other bound components in the form to update their state also, if the change affect them.
 
-#### `getModifiedFieldValues()`
+#### `binder.getModifiedFieldValues()`
 
 Typically called by you when the `submit` button event is fired to get an object containing just the modified fields.
+
+#### `binder._id`
+
+This will be the value of any `_id` field on the original object. Typically, this value will be set for  existing objects that were retrieved from an API, and not set if the object is being created for the first time.  For this reason, it can be used in `binding` functions to determine if the object is being created for the first time or modified.
 
 ## Building Bound components
 
 `FormBinder` enables you to easily build _bound components_ that are automatically set from an initial data object, and allow you to easily get an object back that reflects changes to that object.  This gives you the most flexibility to create components that look good in your app, show errors the way you want to show them, etc..
 
-See the [`example`](https://github.com/jlyonsmith/react-form-binder/tree/master/example) folder in GitHub for for a wide variety of other bound components, including a full featured credit card component which automatically formats and validates different types of credit card numbers.
+See the [`example`](https://github.com/jlyonsmith/react-form-binder/tree/master/example) folder in GitHub for for a wide variety of other bound components, including:
 
-Build and run the example project with:
+- A full featured credit card component which automatically formats and validates different types of credit card numbers
+- A masked input component which formats input according to a mask
+- A state dropdown component
+- A check box component
+- Valueless button components
+- A container component that can shows or hides a group of components based on other bound components.
+
+You can build and run the example project with:
 
 ```
 git clone https://github.com/jlyonsmith/react-form-binder.git

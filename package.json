@@ -1,6 +1,6 @@
 {
   "name": "react-form-binder",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A data binding controller for React forms",
   "main": "dist/index.js",
   "files": [

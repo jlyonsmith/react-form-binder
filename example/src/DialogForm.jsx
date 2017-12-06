@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { autoBind } from 'auto-bind2'
+import { reactAutoBind } from 'auto-bind2'
 import { FormBinder } from 'react-form-binder'
 import { Modal, Button, Icon, Header, Grid, Form } from 'semantic-ui-react'
 import { BoundInput, BoundActionsButton } from './Bound'
@@ -32,7 +32,7 @@ export class DialogForm extends React.Component {
 
   constructor(props) {
     super(props)
-    autoBind(this, (name) => (name.startsWith('handle')))
+    reactAutoBind(this, (name) => (name.startsWith('handle')))
     this.state = {
       binder: new FormBinder({}, DialogForm.bindings)
     }

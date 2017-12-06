@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { autoBind } from 'auto-bind2'
+import { reactAutoBind } from 'auto-bind2'
 import { regExpPattern } from 'regexp-pattern'
 import { Grid, Form } from 'semantic-ui-react'
 import './RegularForm.css'
@@ -157,7 +157,7 @@ export class RegularForm extends React.Component {
 
   constructor(props) {
     super(props)
-    autoBind(this, (name) => (name.startsWith('handle')))
+    reactAutoBind(this, (name) => (name.startsWith('handle')))
     this.state = {
       binder: new FormBinder(props.formData || {}, RegularForm.bindings, this.props.onAnyModified)
     }

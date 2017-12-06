@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { getNonPropTypeProps, BoundMaskedInput } from '.'
-import autoBind from 'auto-bind2'
+import { reactAutoBind } from 'auto-bind2'
 
 // This is an example of a validated component with a value that changes itself and keeps the value
 // aligned with a format mask
@@ -17,7 +17,7 @@ export class BoundCreditCardInput extends React.Component {
 
   constructor(props) {
     super(props)
-    autoBind(this)
+    reactAutoBind(this)
     this.otherProps = getNonPropTypeProps(this, props)
     const state = props.binder.getFieldState(props.name)
     this.state = {

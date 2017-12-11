@@ -123,7 +123,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
           valid = field.isValid(this, field.state.value);
 
           this.allValid = valid && this.allValid;
-          this.anyModified = field.modified || this.anyModified;
+          this.anyModified = field.state.modified || this.anyModified;
         }
 
         var disabled = field.isDisabled(this);
@@ -180,8 +180,9 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       for (var name in this.fields) {
         var field = this.fields[name];
 
-        if (field.alwaysGet || !field.noValue && field.modified) {
-          var value = field.value;
+        if (field.alwaysGet || !field.noValue && field.state.modified) {
+          var value = field.state.value;
+
           if (value && value.constructor === 'String') {
             value = value.trim();
           }

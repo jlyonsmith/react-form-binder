@@ -90,7 +90,7 @@ export class FormBinder extends EventEmitter {
         valid = field.isValid(this, field.state.value)
 
         this.allValid = (valid && this.allValid)
-        this.anyModified = (field.modified || this.anyModified)
+        this.anyModified = (field.state.modified || this.anyModified)
       }
 
       let disabled = field.isDisabled(this)
@@ -150,8 +150,9 @@ export class FormBinder extends EventEmitter {
     for (let name in this.fields) {
       let field = this.fields[name]
 
-      if (field.alwaysGet || (!field.noValue && field.modified)) {
-        let value = field.value
+      if (field.alwaysGet || (!field.noValue && field.state.modified)) {
+        let value = field.state.value
+        
         if (value && value.constructor === 'String') {
           value = value.trim()
         }

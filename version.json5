@@ -7,9 +7,9 @@
   buildFormat: "full",
   tags: {
     major: 1,
-    minor: 0,
-    patch: 5,
-    build: 20171211,
+    minor: 1,
+    patch: 0,
+    build: 20180305,
     revision: 0,
     tz: "America/Los_Angeles",
     startYear: "2017"

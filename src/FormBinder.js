@@ -38,7 +38,8 @@ export class FormBinder extends EventEmitter {
   }
 
   ensureFunc(obj, def) {
-    return obj ? ((obj.constructor === Function) ? obj : () => (!!obj)) : () => (def)
+    // If obj is a func and does not return bool there are problems. So we wrap.
+    return obj ? ((obj.constructor === Function) ? (r, v) => (!!obj(r, v)) : () => (!!obj)) : () => (def)
   }
 
   updateFieldValue(name, newValue, meta) {

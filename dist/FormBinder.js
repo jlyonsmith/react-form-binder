@@ -65,7 +65,10 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
   _createClass(FormBinder, [{
     key: 'ensureFunc',
     value: function ensureFunc(obj, def) {
-      return obj ? obj.constructor === Function ? obj : function () {
+      // If obj is a func and does not return bool there are problems. So we wrap.
+      return obj ? obj.constructor === Function ? function (r, v) {
+        return !!obj(r, v);
+      } : function () {
         return !!obj;
       } : function () {
         return def;
@@ -141,7 +144,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
             visible: visible,
             modified: field.state.modified,
             value: field.state.value
-            // Fire an event the component can update itself
+            // Fire an event so the component can update itself
           };this.emit(name, { name: name, state: field.state });
         }
       }

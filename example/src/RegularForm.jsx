@@ -88,14 +88,14 @@ export class RegularForm extends React.Component {
   static bindings = {
     email: {
       isValid: (r, v) => (regExpPattern.email.test(v)),
-      isDisabled: (r) => (!!r._id)
+      isDisabled: (r) => (r._id)
     },
     emailBound: {
-      isDisabled: (r) => (!!r._id === false)
+      isDisabled: (r) => (!r._id)
     },
     changeEmail: {
       noValue: true,
-      isDisabled: (r) => (!!r._id === false)
+      isDisabled: (r) => (!r._id)
     },
     name: {
       isValid: (r, v) => (v !== '')
@@ -124,7 +124,7 @@ export class RegularForm extends React.Component {
     },
     remove: {
       noValue: true,
-      isVisible: (r) => (!!r._id),
+      isVisible: (r) => (r._id),
       isDisabled: false
     },
     reset: {

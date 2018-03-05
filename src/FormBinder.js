@@ -114,7 +114,7 @@ export class FormBinder extends EventEmitter {
           modified: field.state.modified,
           value: field.state.value
         }
-        // Fire an event the component can update itself
+        // Fire an event so the component can update itself
         this.emit(name, { name, state: field.state })
       }
     }
@@ -152,7 +152,7 @@ export class FormBinder extends EventEmitter {
 
       if (field.alwaysGet || (!field.noValue && field.state.modified)) {
         let value = field.state.value
-        
+
         if (value && value.constructor === 'String') {
           value = value.trim()
         }

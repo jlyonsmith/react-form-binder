@@ -52,8 +52,8 @@ export class DialogForm extends React.Component {
     let passwords = null
 
     if (this.state.binder.allValid) {
-      const oldPassword = this.state.binder.getField('oldPassword')
-      const newPassword = this.state.binder.getField('newPassword')
+      const oldPassword = this.state.binder.getFieldValue('oldPassword')
+      const newPassword = this.state.binder.getFieldValue('newPassword')
       passwords = {
         oldPassword: oldPassword.value,
         newPassword: newPassword.value
@@ -68,8 +68,7 @@ export class DialogForm extends React.Component {
 
   render() {
     return (
-      <Modal dimmer='inverted' open={this.props.open} onClose={this.handleClose}
-        closeOnDimmerClick={false}>
+      <Modal dimmer='inverted' open={this.props.open} onClose={this.handleClose} closeOnDimmerClick={false}>
         <Header color='black' icon='edit' content='Change Password' />
         <Modal.Content>
           <Form className='user-form' id='passwordForm' onSubmit={this.handleSubmit}>

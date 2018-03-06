@@ -22,8 +22,8 @@ export class BoundContainer extends React.Component {
     this.state = binder.getFieldState(name)
   }
 
-  updateValue(name) {
-    this.setState(this.props.binder.getFieldState(name))
+  updateValue(e) {
+    this.setState(e.state)
   }
 
   componentWillUnmount() {

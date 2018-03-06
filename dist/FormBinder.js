@@ -27,11 +27,9 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
 
     var _this = _possibleConstructorReturn(this, (FormBinder.__proto__ || Object.getPrototypeOf(FormBinder)).call(this));
 
-    _this._updateFieldValue = _this._updateFieldValue.bind(_this);
     _this._id = originalObj._id;
     _this.onAnyModified = onAnyModified;
     _this.fields = {};
-    _this.noValueFields = {};
 
     for (var name in bindings) {
       var binding = bindings[name];
@@ -43,46 +41,76 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       };
 
       if (field.noValue) {
-        field.state = {
-          disabled: field.isDisabled(_this),
-          readOnly: field.isReadOnly(_this),
-          visible: field.isVisible(_this)
-        };
+        field.state = {};
       } else {
         field.alwaysGet = binding.alwaysGet;
-        field.isValid = _this.ensureFunc(binding.isValid, true);
+        field.isValid = _this.ensureFunc(binding.isValid, true, true);
         field.initValue = binding.initValue === undefined ? '' : binding.initValue;
         field.originalValue = FormBinder.getObjectFieldValue(originalObj, name);
-        _this._updateFieldValue(field, field.originalValue || field.initValue);
+        field.state = {
+          value: field.originalValue || field.initValue,
+          modified: false
+        };
       }
+
       _this.fields[name] = field;
     }
 
-    _this._updateOtherFields();
+    _this._updateFieldStates();
     return _this;
   }
 
   _createClass(FormBinder, [{
     key: 'ensureFunc',
-    value: function ensureFunc(obj, def) {
-      // If obj is a func and does not return bool there are problems. So we wrap.
-      return obj ? obj.constructor === Function ? function (r, v) {
-        return !!obj(r, v);
-      } : function () {
-        return !!obj;
-      } : function () {
-        return def;
-      };
+    value: function ensureFunc(obj, def, validator) {
+      // If obj is a func and does not return bool there are problems, so we wrap it.
+      if (obj) {
+        if (obj.constructor === Function) {
+          if (validator) {
+            return function (r, v, m) {
+              return !!obj(r, v, m);
+            };
+          } else {
+            return function (r) {
+              return !!obj(r);
+            };
+          }
+        } else {
+          return function () {
+            return !!obj;
+          };
+        }
+      } else {
+        return function () {
+          return def;
+        };
+      }
+    }
+  }, {
+    key: 'updateFieldMetadata',
+    value: function updateFieldMetadata(name, metadata) {
+      var field = this.fields[name];
+
+      if (field) {
+        field.metadata = metadata;
+      }
     }
   }, {
     key: 'updateFieldValue',
-    value: function updateFieldValue(name, newValue, meta) {
+    value: function updateFieldValue(name, newValue) {
       var lastAnyModified = this.anyModified;
       var field = this.fields[name];
 
       if (field) {
-        this._updateFieldValue(field, newValue, meta);
-        this._updateOtherFields(field);
+        if (field.noValue) {
+          throw new Error('Attempt to update value for non-value field \'' + name + '\'');
+        }
+
+        field.state.value = newValue;
+        field.state.modified = field.originalValue !== undefined ? field.originalValue !== newValue : newValue !== field.initValue;
+
+        this._updateFieldStates(field);
+
         if (lastAnyModified !== this.anyModified && this.onAnyModified) {
           this.onAnyModified(this.anyModified);
         }
@@ -91,61 +119,55 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       return field.state;
     }
   }, {
-    key: '_updateFieldValue',
-    value: function _updateFieldValue(field, newValue) {
-      field.state = {
-        value: newValue,
-        disabled: field.isDisabled(this),
-        readOnly: field.isReadOnly(this),
-        visible: field.isVisible(this),
-        valid: field.isValid(this, newValue),
-        modified: field.originalValue !== undefined ? field.originalValue !== newValue : newValue !== field.initValue
-      };
-    }
-  }, {
-    key: '_updateOtherFields',
-    value: function _updateOtherFields(changedField) {
-      if (changedField) {
-        this.anyModified = changedField.state.modified;
-        this.allValid = changedField.state.valid;
-      } else {
-        this.anyModified = false;
-        this.allValid = true;
-      }
+    key: '_updateFieldStates',
+    value: function _updateFieldStates() {
+      this.anyModified = false;
+      this.allValid = true;
 
       for (var name in this.fields) {
         var field = this.fields[name];
 
-        if (changedField === field) {
+        // Do non-value fields after value fields and ignore any just changed field
+        if (field.noValue) {
           continue;
         }
 
-        var valid = undefined;
+        var valid = field.isValid(this, field.state.value, field.metadata);
 
-        if (!field.noValue) {
-          valid = field.isValid(this, field.state.value);
+        // Only value fields can change these two properties
+        this.allValid = valid && this.allValid;
+        this.anyModified = field.state.modified || this.anyModified;
 
-          this.allValid = valid && this.allValid;
-          this.anyModified = field.state.modified || this.anyModified;
+        Object.assign(field.state, {
+          valid: valid,
+          disabled: field.isDisabled(this),
+          readOnly: field.isReadOnly(this),
+          visible: field.isVisible(this)
+        });
+      }
+
+      for (var _name in this.fields) {
+        var _field = this.fields[_name];
+
+        if (!_field.noValue) {
+          continue;
         }
 
-        var disabled = field.isDisabled(this);
-        var readOnly = field.isReadOnly(this);
-        var visible = field.isVisible(this);
+        var disabled = _field.isDisabled(this);
+        var readOnly = _field.isReadOnly(this);
+        var visible = _field.isVisible(this);
 
         // Did the valid, disabled, read-only or visible state of this field change?
-        var anyChanges = valid !== field.state.valid || disabled !== field.state.disabled || readOnly !== field.state.readOnly || visible !== field.state.visible;
+        var anyChanges = disabled !== _field.state.disabled || readOnly !== _field.state.readOnly || visible !== _field.state.visible;
 
         if (anyChanges) {
-          field.state = {
-            valid: valid,
+          _field.state = {
             disabled: disabled,
             readOnly: readOnly,
-            visible: visible,
-            modified: field.state.modified,
-            value: field.state.value
+            visible: visible
+
             // Fire an event so the component can update itself
-          };this.emit(name, { name: name, state: field.state });
+          };this.emit(_name, { name: _name, state: _field.state });
         }
       }
     }
@@ -157,7 +179,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
   }, {
     key: 'getFieldState',
     value: function getFieldState(name) {
-      var field = this.fields[name] || this.noValueFields[name];
+      var field = this.fields[name];
 
       if (!field) {
         throw new Error('Field \'' + name + '\' does not have a binding entry');

@@ -116,7 +116,9 @@ export class RegularForm extends React.Component {
       isValid: (r, v, m) => (v === '' || (m && v.length === m.mask.length))
     },
     ssn: {
-      isValid: (r, v, m) => (v === '' || (m && v.length === m.mask.length))
+      isValid: (r, v, m) => {
+        return v === '' || (m && v.length === m.mask.length)
+      }
     },
     role: {
       isValid: (r, v) => (v !== ''),
@@ -133,7 +135,9 @@ export class RegularForm extends React.Component {
     },
     submit: {
       noValue: true,
-      isDisabled: (r) => (!r.anyModified || !r.allValid)
+      isDisabled: (r) => {
+        return !(r.anyModified && r.allValid)
+      }
     },
     'admin-fields': {
       noValue: true,
@@ -145,7 +149,9 @@ export class RegularForm extends React.Component {
     },
     'cardNumber': {
       // TODO: Figure a way to put "v.length === m.mask.length" back in
-      isValid: (r, v) => (BoundCreditCardInput.luhnCheck(v.replace(/ /g, '')))
+      isValid: (r, v) => {
+        return v !== '' && BoundCreditCardInput.luhnCheck(v.replace(/ /g, ''))
+      }
     },
     'cardExp': {
       isValid: true
@@ -235,7 +241,7 @@ export class RegularForm extends React.Component {
             </Form.Group>
 
             <Form.Group>
-              <BoundMaskedInput label='SSN' width={6} name='ssn' mask='999-999-9999'
+              <BoundMaskedInput label='SSN' width={6} name='ssn' mask='999-99-9999'
                 binder={this.state.binder} message='U.S. Social Security Number, e.g. 123-45-6789' />
             </Form.Group>
 

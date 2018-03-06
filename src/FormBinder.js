@@ -3,11 +3,9 @@ import EventEmitter from 'eventemitter3'
 export class FormBinder extends EventEmitter {
   constructor(originalObj, bindings, onAnyModified) {
     super()
-    this._updateFieldValue = this._updateFieldValue.bind(this)
     this._id = originalObj._id
     this.onAnyModified = onAnyModified
     this.fields = {}
-    this.noValueFields = {}
 
     for (let name in bindings) {
       let binding = bindings[name]
@@ -19,36 +17,64 @@ export class FormBinder extends EventEmitter {
       }
 
       if (field.noValue) {
-        field.state = {
-          disabled: field.isDisabled(this),
-          readOnly: field.isReadOnly(this),
-          visible: field.isVisible(this),
-        }
+        field.state = {}
       } else {
         field.alwaysGet = binding.alwaysGet
-        field.isValid = this.ensureFunc(binding.isValid, true)
+        field.isValid = this.ensureFunc(binding.isValid, true, true)
         field.initValue = (binding.initValue === undefined ? '' : binding.initValue)
         field.originalValue = FormBinder.getObjectFieldValue(originalObj, name)
-        this._updateFieldValue(field, field.originalValue || field.initValue)
+        field.state = {
+          value: field.originalValue || field.initValue,
+          modified: false
+        }
       }
+
       this.fields[name] = field
     }
 
-    this._updateOtherFields()
+    this._updateFieldStates()
   }
 
-  ensureFunc(obj, def) {
-    // If obj is a func and does not return bool there are problems. So we wrap.
-    return obj ? ((obj.constructor === Function) ? (r, v) => (!!obj(r, v)) : () => (!!obj)) : () => (def)
+  ensureFunc(obj, def, validator) {
+    // If obj is a func and does not return bool there are problems, so we wrap it.
+    if (obj) {
+      if (obj.constructor === Function) {
+        if (validator) {
+          return (r, v, m) => (!!obj(r, v, m))
+        } else {
+          return (r) => (!!obj(r))
+        }
+      } else {
+        return () => (!!obj)
+      }
+    } else {
+      return () => (def)
+    }
   }
 
-  updateFieldValue(name, newValue, meta) {
+  updateFieldMetadata(name, metadata) {
+    let field = this.fields[name]
+
+    if (field) {
+      field.metadata = metadata
+    }
+  }
+
+  updateFieldValue(name, newValue) {
     let lastAnyModified = this.anyModified
     let field = this.fields[name]
 
     if (field) {
-      this._updateFieldValue(field, newValue, meta)
-      this._updateOtherFields(field)
+      if (field.noValue) {
+        throw new Error(`Attempt to update value for non-value field '${name}'`)
+      }
+
+      field.state.value = newValue
+      field.state.modified = (field.originalValue !== undefined ?
+        (field.originalValue !== newValue) : (newValue !== field.initValue))
+
+      this._updateFieldStates(field)
+
       if (lastAnyModified !== this.anyModified && this.onAnyModified) {
         this.onAnyModified(this.anyModified)
       }
@@ -57,41 +83,37 @@ export class FormBinder extends EventEmitter {
     return field.state
   }
 
-  _updateFieldValue(field, newValue) {
-    field.state = {
-      value: newValue,
-      disabled: field.isDisabled(this),
-      readOnly: field.isReadOnly(this),
-      visible: field.isVisible(this),
-      valid: field.isValid(this, newValue),
-      modified: field.originalValue !== undefined ?
-        (field.originalValue !== newValue) : (newValue !== field.initValue)
-    }
-  }
+  _updateFieldStates() {
+    this.anyModified = false
+    this.allValid = true
 
-  _updateOtherFields(changedField) {
-    if (changedField) {
-      this.anyModified = changedField.state.modified
-      this.allValid = changedField.state.valid
-    } else {
-      this.anyModified = false
-      this.allValid = true
+    for (let name in this.fields) {
+      let field = this.fields[name]
+
+      // Do non-value fields after value fields and ignore any just changed field
+      if (field.noValue) {
+        continue
+      }
+
+      let valid = field.isValid(this, field.state.value, field.metadata)
+
+      // Only value fields can change these two properties
+      this.allValid = (valid && this.allValid)
+      this.anyModified = (field.state.modified || this.anyModified)
+
+      Object.assign(field.state, {
+        valid,
+        disabled: field.isDisabled(this),
+        readOnly: field.isReadOnly(this),
+        visible: field.isVisible(this)
+      })
     }
 
     for (let name in this.fields) {
       let field = this.fields[name]
 
-      if (changedField === field) {
-        continue
-      }
-
-      let valid = undefined
-
       if (!field.noValue) {
-        valid = field.isValid(this, field.state.value)
-
-        this.allValid = (valid && this.allValid)
-        this.anyModified = (field.state.modified || this.anyModified)
+        continue
       }
 
       let disabled = field.isDisabled(this)
@@ -100,7 +122,6 @@ export class FormBinder extends EventEmitter {
 
       // Did the valid, disabled, read-only or visible state of this field change?
       let anyChanges = (
-        valid !== field.state.valid ||
         disabled !== field.state.disabled ||
         readOnly !== field.state.readOnly ||
         visible !== field.state.visible
@@ -108,13 +129,11 @@ export class FormBinder extends EventEmitter {
 
       if (anyChanges) {
         field.state = {
-          valid,
           disabled,
           readOnly,
-          visible,
-          modified: field.state.modified,
-          value: field.state.value
+          visible
         }
+
         // Fire an event so the component can update itself
         this.emit(name, { name, state: field.state })
       }
@@ -126,7 +145,7 @@ export class FormBinder extends EventEmitter {
   }
 
   getFieldState(name) {
-    let field = this.fields[name] || this.noValueFields[name]
+    let field = this.fields[name]
 
     if (!field) {
       throw new Error(`Field '${name}' does not have a binding entry`)

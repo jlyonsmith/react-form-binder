@@ -8,7 +8,8 @@ export class BoundActionsButton extends React.Component {
     name: PropTypes.string.isRequired,
     binder: PropTypes.object.isRequired,
     submit: PropTypes.bool,
-    children: PropTypes.node
+    children: PropTypes.node,
+    form: PropTypes.string,
   }
 
   constructor(props) {
@@ -42,7 +43,8 @@ export class BoundActionsButton extends React.Component {
   render() {
     if (this.state.visible) {
       return (
-        <Button name={this.props.name} disabled={this.state.disabled} type={this.props.submit ? 'submit' : 'button'}>
+        <Button name={this.props.name} disabled={this.state.disabled}
+          type={this.props.submit ? 'submit' : 'button'} form={this.props.form}>
           {this.props.children}
         </Button>
       )

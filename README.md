@@ -1,14 +1,14 @@
 # React Form Binder
 
-A data binding controller for React forms components. It's purpose is to ease the challenge of moving data back and forth between `input`, `select`, `button` and other elements within an HTML `form` and the Javascript object which was received from a REST API call, database, etc.. After manipulation by the `form`, the data object can then be passed back to it's original source.
+A data binding controller for React `form` and `form`-like components.  It works with both React and React Native applications. It's simpler than a full Redux implementation when all you need is to move data back and forth between a Javascript object and React components corresponding to properties of that object while validating them  and updating the other components of the form accoringly.
 
-The term _field_, whose full meaning here is _data entry field_, refers to the bound React component.  Field values and state are determined by a binding rules.  Field values are mapped to and from Javascript object _properties_.
+This library uses the term _field_ to mean some value that needs to be moved back and forth between a Javascript object and a React component. Fields contain a `state` property which contains `value` and `valid`, `disabled`, `visible`, `modified` and `readonly` propertes.  This `state` can be used to automatically update the corresponding _bound component_.  A _bindings_ object contains functions that updates the `value` property and the other fields as `value` changes.
 
-There are two types of _bound_ components. Those that maintain a value, e.g. text input, checkbox, dropdown, and those that have no value, e.g. 'OK' and 'Cancel' buttons.  Components that do not maintain a value can still change their state based on the value of other bound components on the form.
+There are two types of _bound components_. Those that maintain a `value`, e.g. text input, checkbox, dropdown, and those that have no `value`, e.g. 'OK' and 'Cancel' buttons.  Components that do not maintain a value can still change their state based on the value of other bound components on the form.
 
 ## Step-by-Step
 
-To bind an HTML `form`:
+For React applications, to bind an HTML `form`:
 
 1. Add the `bindings` object as a static property of the class, ensuring an `isValid` at a minimum for each data field. `isValid` can be any truthy value or a function returning a truthy value.  Mark a field as `noValue` if it does not map to a property in the data object.
 2. Construct the `FormBinder` object in the form component `constructor()` and assign it to a  `this.binder` variable
@@ -81,9 +81,9 @@ A truthy value, or function returning a truthy value, that determines `state.vis
 
 A truthy value, or function returning a truthy value, that determines `state.valid` for the field.  It's up to the bound component to implement looks like, but generally you want to display some kind of error message when this is `true`.
 
-#### `defaultValue`
+#### `initValue`
 
-The default value to give the component `value` if it is `null` or `undefined` initially.
+The value to initialize the `state.value` if it is `null` or `undefined` initially.
 
 ### `FormBinder(obj, bindings, onAnyModifiedChanged)`
 
@@ -202,7 +202,7 @@ export class BoundInput extends React.Component {
 }
 ```
 
-In the constructor we `bind()` some methods to `this` and set the initial `state`.  
+In the constructor we `bind()` some methods to `this` and set the initial `state`.
 
 We also add an event listener for the `props.name` event.  The `FormBinder` will fire an event with the name of the field if some element of this fields `state`, other than `value`, changes because of another field value getting updated. The only way `value` should change is if this component updates it, or if the `binder` that this component is attached to changes.
 
@@ -249,7 +249,7 @@ Now we handle the `binder` property changing in the parent form:
   }
 ```
 
-Finally, the `render()` method to generate the DOM elements based on the `state` fields.  
+Finally, the `render()` method to generate the DOM elements based on the `state` fields.
 
 ```
   render() {

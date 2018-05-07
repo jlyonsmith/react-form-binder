@@ -6,10 +6,10 @@
   ],
   buildFormat: "full",
   tags: {
-    major: 1,
-    minor: 2,
+    major: 2,
+    minor: 0,
     patch: 0,
-    build: 20180306,
+    build: 20180507,
     revision: 0,
     tz: "America/Los_Angeles",
     startYear: "2017"

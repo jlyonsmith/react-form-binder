@@ -11,7 +11,6 @@ import { BoundInput, BoundButton,
 
 export class RegularForm extends React.Component {
   static propTypes = {
-    formData: PropTypes.object,
     onSave: PropTypes.func,
     onRemove: PropTypes.func,
     onAnyModified: PropTypes.func,
@@ -151,10 +150,12 @@ export class RegularForm extends React.Component {
       // TODO: Figure a way to put "v.length === m.mask.length" back in
       isValid: (r, v) => {
         return v !== '' && BoundCreditCardInput.luhnCheck(v.replace(/ /g, ''))
-      }
+      },
     },
     'cardExp': {
-      isValid: true
+      isValid: true,
+      pre: (v) => v !== '' ? (v.substr(0, 2) + "/" + v.substr(2,2)) : '',
+      post: (v) => v !== '' ? (v.substr(0, 2) + v.substr(3,2)) : ''
     },
     'cardCVC': {
       isValid: true
@@ -163,9 +164,16 @@ export class RegularForm extends React.Component {
 
   constructor(props) {
     super(props)
+
+    const obj = {
+      name: "John Oliver",
+      email: "john@oliver.org",
+      cardExp: "9999"
+    }
+
     reactAutoBind(this, (name) => (name.startsWith('handle')))
     this.state = {
-      binder: new FormBinder(props.formData || {}, RegularForm.bindings, this.props.onAnyModified)
+      binder: new FormBinder(obj, RegularForm.bindings, this.props.onAnyModified)
     }
   }
 
@@ -179,13 +187,15 @@ export class RegularForm extends React.Component {
       onSave(obj)
     }
 
+    console.log(obj)
+
     this.props.history.replace('/')
   }
 
   handleReset() {
     const onAnyModified = this.props.onAnyModified
 
-    this.setState({ binder: new FormBinder(this.props.formData || {}, RegularForm.bindings, onAnyModified) })
+    this.setState({ binder: new FormBinder(this.state.binder.originalObj, RegularForm.bindings, onAnyModified) })
     if (onAnyModified) {
       onAnyModified(false)
     }

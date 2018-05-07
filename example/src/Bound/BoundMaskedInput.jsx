@@ -35,7 +35,6 @@ export class BoundMaskedInput extends React.Component {
     this.handleKeyDown = this.handleKeyDown.bind(this)
     this.otherProps = getNonPropTypeProps(this, props)
     this.state = props.binder.getFieldState(props.name)
-    this.props.binder.updateFieldMetadata(this.props.name, { mask: this.props.mask })
   }
 
   handleChange(e) {

@@ -59,6 +59,9 @@ export class DialogForm extends React.Component {
         newPassword: newPassword.value
       }
     }
+
+    console.log(passwords)
+
     this.closeDialog(passwords)
   }
 

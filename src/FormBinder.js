@@ -23,11 +23,10 @@ export class FormBinder extends EventEmitter {
         field.alwaysGet = binding.alwaysGet
         field.isValid = this._ensureFunc(binding.isValid, true, true)
 
-        const initValue = !binding.initValue ? "" : binding.initValue
         let value = FormBinder._getObjectFieldValue(originalObj, name)
 
         if (typeof value === "undefined") {
-          value = initValue
+          value = binding.initValue || ""
         }
 
         field.unmodifiedValue = value

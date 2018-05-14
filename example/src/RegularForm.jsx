@@ -7,7 +7,7 @@ import './RegularForm.css'
 import { FormBinder } from 'react-form-binder'
 import { BoundInput, BoundButton,
   BoundDropdown, BoundContainer,
-  BoundMaskedInput, BoundCreditCardInput } from './Bound'
+  BoundMaskedInput, BoundCreditCardInput, BoundCheckbox } from './Bound'
 
 export class RegularForm extends React.Component {
   static propTypes = {
@@ -99,6 +99,10 @@ export class RegularForm extends React.Component {
     name: {
       isValid: (r, v) => (v !== '')
     },
+    admin: {
+      initValue: false,
+      alwaysGet: true,
+    },
     zip: {
       isValid: (r, v) => (v === '' || regExpPattern.zip.test(v))
     },
@@ -149,7 +153,7 @@ export class RegularForm extends React.Component {
     'cardNumber': {
       // TODO: Figure a way to put "v.length === m.mask.length" back in
       isValid: (r, v) => {
-        return v !== '' && BoundCreditCardInput.luhnCheck(v.replace(/ /g, ''))
+        return v === '' || BoundCreditCardInput.luhnCheck(v.replace(/ /g, ''))
       },
     },
     'cardExp': {
@@ -218,6 +222,10 @@ export class RegularForm extends React.Component {
             <Form.Group>
               <BoundInput label='Email' name='email' width={8} message='Must be a valid email address. Required.'
                 binder={this.state.binder} />
+            </Form.Group>
+            <Form.Group>
+              <BoundCheckbox label='Administrator' name='admin'
+                binder={this.state.binder} message='Is this user an administrator?' />
             </Form.Group>
 
             <Form.Group>

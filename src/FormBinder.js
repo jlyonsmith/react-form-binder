@@ -26,11 +26,11 @@ export class FormBinder extends EventEmitter {
         let value = FormBinder._getObjectFieldValue(originalObj, name)
 
         if (typeof value === "undefined") {
-          value = binding.initValue || ""
+          value =
+            typeof binding.initValue !== "undefined" ? binding.initValue : ""
         }
 
         field.unmodifiedValue = value
-
         field.post = field.post || ((v) => v)
         field.state = {
           value: binding.pre ? binding.pre(value) : value,

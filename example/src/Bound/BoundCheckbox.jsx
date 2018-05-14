@@ -17,7 +17,7 @@ export class BoundCheckbox extends React.Component {
   constructor(props) {
     super(props)
     this.otherProps = getNonPropTypeProps(this, props)
-    this.state = props.binder.getField(props.name)
+    this.state = props.binder.getFieldState(props.name)
     this.handleChange = this.handleChange.bind(this)
   }
 
@@ -26,7 +26,7 @@ export class BoundCheckbox extends React.Component {
     const state = binder.getField(name)
 
     if (!state.readOnly && !state.disabled) {
-      this.setState(binder.updateValue(name, data.checked))
+      this.setState(binder.updateFieldValue(name, data.checked))
     }
   }
 

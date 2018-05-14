@@ -47,15 +47,13 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         field.alwaysGet = binding.alwaysGet;
         field.isValid = _this._ensureFunc(binding.isValid, true, true);
 
-        var initValue = !binding.initValue ? "" : binding.initValue;
         var value = FormBinder._getObjectFieldValue(originalObj, name);
 
         if (typeof value === "undefined") {
-          value = initValue;
+          value = typeof binding.initValue !== "undefined" ? binding.initValue : "";
         }
 
         field.unmodifiedValue = value;
-
         field.post = field.post || function (v) {
           return v;
         };

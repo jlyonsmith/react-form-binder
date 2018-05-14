@@ -8,8 +8,8 @@
   tags: {
     major: 2,
     minor: 0,
-    patch: 0,
-    build: 20180507,
+    patch: 1,
+    build: 20180514,
     revision: 0,
     tz: "America/Los_Angeles",
     startYear: "2017"

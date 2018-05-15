@@ -35,7 +35,7 @@ export class FormBinder extends EventEmitter {
         value = bindingDef.pre ? bindingDef.pre(value) : value
 
         binding.unmodifiedValue = value
-        binding.post = binding.post || ((v) => v)
+        binding.post = bindingDef.post || ((v) => v)
         binding.state = {
           value,
           modified: false,

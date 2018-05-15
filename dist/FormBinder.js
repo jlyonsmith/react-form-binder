@@ -56,7 +56,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         value = bindingDef.pre ? bindingDef.pre(value) : value;
 
         binding.unmodifiedValue = value;
-        binding.post = binding.post || function (v) {
+        binding.post = bindingDef.post || function (v) {
           return v;
         };
         binding.state = {

@@ -18,11 +18,11 @@ export class DialogForm extends React.Component {
     },
     newPassword: {
       alwaysGet: true,
-      isValid: (r, v) => (v !== '' && v !== r.getFieldValue('oldPassword'))
+      isValid: (r, v) => (v !== '' && v !== r.getBindingValue('oldPassword'))
     },
     reenteredNewPassword: {
       alwaysGet: true,
-      isValid: (r, v) => (v !== '' && v === r.getFieldValue('newPassword'))
+      isValid: (r, v) => (v !== '' && v === r.getBindingValue('newPassword'))
     },
     submit: {
       isDisabled: (r) => (!r.allValid),
@@ -50,13 +50,14 @@ export class DialogForm extends React.Component {
   handleSubmit(e) {
     e.preventDefault()
     let passwords = null
+    const { binder } = this.state
 
     if (this.state.binder.allValid) {
-      const oldPassword = this.state.binder.getFieldValue('oldPassword')
-      const newPassword = this.state.binder.getFieldValue('newPassword')
+      const oldPassword = binder.getBindingValue('oldPassword')
+      const newPassword = binder.getBindingValue('newPassword')
       passwords = {
-        oldPassword: oldPassword.value,
-        newPassword: newPassword.value
+        oldPassword: oldPassword,
+        newPassword: newPassword
       }
     }
 

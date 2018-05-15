@@ -16,19 +16,19 @@ export class BoundDropdown extends React.Component {
   constructor(props) {
     super(props)
     this.otherProps = getNonPropTypeProps(this, props)
-    this.state = props.binder.getFieldState(props.name)
+    this.state = props.binder.getBindingState(props.name)
     this.handleChange = this.handleChange.bind(this)
   }
 
   handleChange(e, data) {
     const { binder, name } = this.props
 
-    this.setState(binder.updateFieldValue(name, data.value))
+    this.setState(binder.updateBindingValue(name, data.value))
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.binder !== this.props.binder) {
-      this.setState(nextProps.binder.getFieldState(nextProps.name))
+      this.setState(nextProps.binder.getBindingState(nextProps.name))
     }
   }
 

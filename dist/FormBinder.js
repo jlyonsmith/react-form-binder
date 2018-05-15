@@ -22,51 +22,53 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var FormBinder = exports.FormBinder = function (_EventEmitter) {
   _inherits(FormBinder, _EventEmitter);
 
-  function FormBinder(originalObj, bindings, onAnyModified) {
+  function FormBinder(originalObj, bindingDefs, onAnyModified) {
     _classCallCheck(this, FormBinder);
 
     var _this = _possibleConstructorReturn(this, (FormBinder.__proto__ || Object.getPrototypeOf(FormBinder)).call(this));
 
     _this._id = originalObj._id;
     _this._onAnyModified = onAnyModified;
-    _this._fields = {};
+    _this._bindings = {};
     _this._originalObj = originalObj;
 
-    for (var name in bindings) {
-      var binding = bindings[name];
-      var field = {
-        isDisabled: _this._ensureFunc(binding.isDisabled, false),
-        isReadOnly: _this._ensureFunc(binding.isReadOnly, false),
-        isVisible: _this._ensureFunc(binding.isVisible, true),
-        noValue: !!binding.noValue
+    for (var path in bindingDefs) {
+      var bindingDef = bindingDefs[path];
+      var binding = {
+        isDisabled: _this._ensureFunc(bindingDef.isDisabled, false),
+        isReadOnly: _this._ensureFunc(bindingDef.isReadOnly, false),
+        isVisible: _this._ensureFunc(bindingDef.isVisible, true),
+        noValue: !!bindingDef.noValue
       };
 
-      if (field.noValue) {
-        field.state = {};
+      if (binding.noValue) {
+        binding.state = {};
       } else {
-        field.alwaysGet = binding.alwaysGet;
-        field.isValid = _this._ensureFunc(binding.isValid, true, true);
+        binding.alwaysGet = bindingDef.alwaysGet;
+        binding.isValid = _this._ensureFunc(bindingDef.isValid, true, true);
 
-        var value = FormBinder._getObjectFieldValue(originalObj, name);
+        var value = FormBinder._getObjectPathValue(originalObj, path);
 
         if (typeof value === "undefined") {
-          value = typeof binding.initValue !== "undefined" ? binding.initValue : "";
+          value = typeof bindingDef.initValue !== "undefined" ? bindingDef.initValue : "";
         }
 
-        field.unmodifiedValue = value;
-        field.post = field.post || function (v) {
+        value = bindingDef.pre ? bindingDef.pre(value) : value;
+
+        binding.unmodifiedValue = value;
+        binding.post = binding.post || function (v) {
           return v;
         };
-        field.state = {
-          value: binding.pre ? binding.pre(value) : value,
+        binding.state = {
+          value: value,
           modified: false
         };
       }
 
-      _this._fields[name] = field;
+      _this._bindings[path] = binding;
     }
 
-    _this._updateFieldStates();
+    _this._updateBindingStates();
     return _this;
   }
 
@@ -97,101 +99,101 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       }
     }
   }, {
-    key: "updateFieldValue",
-    value: function updateFieldValue(name, newValue) {
+    key: "updateBindingValue",
+    value: function updateBindingValue(path, newValue) {
       var lastAnyModified = this.anyModified;
-      var field = this._fields[name];
+      var binding = this._bindings[path];
 
-      if (field) {
-        if (field.noValue) {
-          throw new Error("Attempt to update value for non-value field '" + name + "'");
+      if (binding) {
+        if (binding.noValue) {
+          throw new Error("Attempt to update value for non-value binding '" + path + "'");
         }
 
-        field.state.value = newValue;
-        field.state.modified = newValue !== field.unmodifiedValue;
+        binding.state.value = newValue;
+        binding.state.modified = newValue !== binding.unmodifiedValue;
 
-        this._updateFieldStates(field);
+        this._updateBindingStates(binding);
 
         if (lastAnyModified !== this.anyModified && this._onAnyModified) {
           this._onAnyModified(this.anyModified);
         }
       }
 
-      return field.state;
+      return binding.state;
     }
   }, {
-    key: "_updateFieldStates",
-    value: function _updateFieldStates() {
+    key: "_updateBindingStates",
+    value: function _updateBindingStates() {
       this.anyModified = false;
       this.allValid = true;
 
-      for (var name in this._fields) {
-        var field = this._fields[name];
+      for (var path in this._bindings) {
+        var binding = this._bindings[path];
 
-        // Do non-value fields after value fields and ignore any just changed field
-        if (field.noValue) {
+        // Do non-value bindings after value bindings and ignore any just changed binding
+        if (binding.noValue) {
           continue;
         }
 
-        var valid = field.isValid(this, field.state.value, field.metadata);
+        var valid = binding.isValid(this, binding.state.value, binding.metadata);
 
-        // Only value fields can change these two properties
+        // Only value bindings can change these two properties
         this.allValid = valid && this.allValid;
-        this.anyModified = field.state.modified || this.anyModified;
+        this.anyModified = binding.state.modified || this.anyModified;
 
-        Object.assign(field.state, {
+        Object.assign(binding.state, {
           valid: valid,
-          disabled: field.isDisabled(this),
-          readOnly: field.isReadOnly(this),
-          visible: field.isVisible(this)
+          disabled: binding.isDisabled(this),
+          readOnly: binding.isReadOnly(this),
+          visible: binding.isVisible(this)
         });
       }
 
-      for (var _name in this._fields) {
-        var _field = this._fields[_name];
+      for (var _path in this._bindings) {
+        var _binding = this._bindings[_path];
 
-        if (!_field.noValue) {
+        if (!_binding.noValue) {
           continue;
         }
 
-        var disabled = _field.isDisabled(this);
-        var readOnly = _field.isReadOnly(this);
-        var visible = _field.isVisible(this);
+        var disabled = _binding.isDisabled(this);
+        var readOnly = _binding.isReadOnly(this);
+        var visible = _binding.isVisible(this);
 
-        // Did the valid, disabled, read-only or visible state of this field change?
-        var anyChanges = disabled !== _field.state.disabled || readOnly !== _field.state.readOnly || visible !== _field.state.visible;
+        // Did the valid, disabled, read-only or visible state of this binding change?
+        var anyChanges = disabled !== _binding.state.disabled || readOnly !== _binding.state.readOnly || visible !== _binding.state.visible;
 
         if (anyChanges) {
-          _field.state = {
+          _binding.state = {
             disabled: disabled,
             readOnly: readOnly,
             visible: visible
 
             // Fire an event so the component can update itself
-          };this.emit(_name, { name: _name, state: _field.state });
+          };this.emit(_path, { path: _path, state: _binding.state });
         }
       }
     }
   }, {
-    key: "getFieldValue",
-    value: function getFieldValue(name) {
-      return this.getFieldState(name).value;
+    key: "getBindingValue",
+    value: function getBindingValue(path) {
+      return this.getBindingState(path).value;
     }
   }, {
-    key: "getFieldState",
-    value: function getFieldState(name) {
-      var field = this._fields[name];
+    key: "getBindingState",
+    value: function getBindingState(path) {
+      var binding = this._bindings[path];
 
-      if (!field) {
-        throw new Error("Field '" + name + "' does not have a binding entry");
+      if (!binding) {
+        throw new Error("There is no binding entry for '" + path + "'");
       }
 
-      return field.state;
+      return binding.state;
     }
   }, {
-    key: "getModifiedFieldValues",
-    value: function getModifiedFieldValues() {
-      // Generate an object that has the modified and alwaysGet fields
+    key: "getModifiedBindingValues",
+    value: function getModifiedBindingValues() {
+      // Generate an object that has the modified and alwaysGet bindings
       var obj = {};
 
       if (!this.anyModified && !this.allValid) {
@@ -203,23 +205,23 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         obj._id = this._id;
       }
 
-      for (var name in this._fields) {
-        var field = this._fields[name];
+      for (var path in this._bindings) {
+        var binding = this._bindings[path];
 
-        if (field.alwaysGet || !field.noValue && field.state.modified) {
-          var value = field.state.value;
+        if (binding.alwaysGet || !binding.noValue && binding.state.modified) {
+          var value = binding.state.value;
 
           if (value && value.constructor === "String") {
             value = value.trim();
 
-            if (value === field.unmodifiedValue) {
+            if (value === binding.unmodifiedValue) {
               continue;
             }
           }
 
-          value = field.post ? field.post(value) : value;
+          value = binding.post ? binding.post(value) : value;
 
-          FormBinder._setObjectFieldValue(obj, name, value);
+          FormBinder._setObjectPathValue(obj, path, value);
         }
       }
 
@@ -236,9 +238,9 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       return this._originalObj;
     }
   }], [{
-    key: "_getObjectFieldValue",
-    value: function _getObjectFieldValue(obj, name) {
-      name.split(".").forEach(function (namePart) {
+    key: "_getObjectPathValue",
+    value: function _getObjectPathValue(obj, path) {
+      path.split(".").forEach(function (namePart) {
         if (obj) {
           obj = obj[namePart];
         }
@@ -246,9 +248,9 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       return obj;
     }
   }, {
-    key: "_setObjectFieldValue",
-    value: function _setObjectFieldValue(obj, name, value) {
-      name.split(".").forEach(function (namePart, i, nameParts) {
+    key: "_setObjectPathValue",
+    value: function _setObjectPathValue(obj, path, value) {
+      path.split(".").forEach(function (namePart, i, nameParts) {
         if (i < nameParts.length - 1) {
           if (!obj[namePart]) {
             obj[namePart] = {};

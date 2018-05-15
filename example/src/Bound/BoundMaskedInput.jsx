@@ -34,7 +34,7 @@ export class BoundMaskedInput extends React.Component {
     this.handleChange = this.handleChange.bind(this)
     this.handleKeyDown = this.handleKeyDown.bind(this)
     this.otherProps = getNonPropTypeProps(this, props)
-    this.state = props.binder.getFieldState(props.name)
+    this.state = props.binder.getBindingState(props.name)
   }
 
   handleChange(e) {
@@ -47,10 +47,10 @@ export class BoundMaskedInput extends React.Component {
 
     const { binder, name } = this.props
     let { mask } = this.props
-    const state = binder.getFieldState(name)
+    const state = binder.getBindingState(name)
 
     if (!state.readOnly && !state.disabled) {
-      const field = binder.getFieldState(name)
+      const field = binder.getBindingState(name)
       let value = field.value
 
       if (typeof mask === 'function') {
@@ -102,13 +102,13 @@ export class BoundMaskedInput extends React.Component {
           return
       }
 
-      this.setState(binder.updateFieldValue(name, value))
+      this.setState(binder.updateBindingValue(name, value))
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.binder !== this.props.binder) {
-      this.setState(nextProps.binder.getFieldState(nextProps.name))
+      this.setState(nextProps.binder.getBindingState(nextProps.name))
     }
   }
 

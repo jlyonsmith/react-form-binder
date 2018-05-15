@@ -19,7 +19,7 @@ export class BoundCreditCardInput extends React.Component {
     super(props)
     reactAutoBind(this)
     this.otherProps = getNonPropTypeProps(this, props)
-    const state = props.binder.getFieldState(props.name)
+    const state = props.binder.getBindingState(props.name)
     this.state = {
       ...state,
       cardType: BoundCreditCardInput.detectCardType(BoundMaskedInput.removeFormatting(state.value))
@@ -45,7 +45,7 @@ export class BoundCreditCardInput extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.binder !== this.props.binder) {
-      this.setState(nextProps.binder.getFieldState(nextProps.name))
+      this.setState(nextProps.binder.getBindingState(nextProps.name))
     }
   }
 

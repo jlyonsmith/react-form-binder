@@ -17,7 +17,7 @@ export class BoundActionsButton extends React.Component {
     this.updateValue = this.updateValue.bind(this)
     this.otherProps = getNonPropTypeProps(this, props)
     props.binder.addListener(props.name, this.updateValue)
-    this.state = props.binder.getFieldState(props.name)
+    this.state = props.binder.getBindingState(props.name)
   }
 
   updateValue(e) {
@@ -32,7 +32,7 @@ export class BoundActionsButton extends React.Component {
     if (nextProps.binder !== this.props.binder) {
       this.props.binder.removeListener(this.props.name, this.updateValue)
       nextProps.binder.addListener(nextProps.name, this.updateValue)
-      this.setState(nextProps.binder.getFieldState(nextProps.name))
+      this.setState(nextProps.binder.getBindingState(nextProps.name))
     }
   }
 

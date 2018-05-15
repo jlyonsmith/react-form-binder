@@ -19,7 +19,7 @@ export class BoundContainer extends React.Component {
 
     this.otherProps = other
     binder.addListener(name, this.updateValue)
-    this.state = binder.getFieldState(name)
+    this.state = binder.getBindingState(name)
   }
 
   updateValue(e) {
@@ -34,7 +34,7 @@ export class BoundContainer extends React.Component {
     if (nextProps.binder !== this.props.binder) {
       this.props.binder.removeListener(this.props.name, this.updateValue)
       nextProps.binder.addListener(nextProps.name, this.updateValue)
-      this.setState(nextProps.binder.getFieldState(nextProps.name))
+      this.setState(nextProps.binder.getBindingState(nextProps.name))
     }
   }
 

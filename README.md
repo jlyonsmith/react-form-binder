@@ -1,29 +1,37 @@
-# React Form Binder
+A React data entry form binder. Automatically controls component state, validates and translates data to and from internal data objects. Works with both [React](https://reactjs.org/) and [React Native](https://facebook.github.io/react-native/).
 
+When building data entry forms with React there are a bunch of things that you will want to do in pretty much all cases:
 
-A form data binder that works with both [React](https://reactjs.org/) and [React Native](https://facebook.github.io/react-native/). This library is essentially a controlled component manager for data entry forms.
+- Move data to and from an internal transmission or storage object, such as the payload of an API call or a database record.
+- Track whether the data has been modified and filter out only the modified properties
+- Validate that the React components on the form contain valid data
+- Set the enabled, read-only or visible state of components on the form based on the value of other components.
+- Transform data from and to the transmission/storage format, e.g. date/times from ISO 8601 to local time.
+- Be able to easily detect the validity and modification state of the entire form.
 
-When building data entry forms with React there are things that are common to all forms:
+## Glossary
 
-- Moving data to and from a transmission object, such as the payload of an API call
-- Tracking whether the data has been modified and filter out only the modified data
-- Validating the the form components contain valid data
-- Setting the enabled, read-only or visible state of components based on the value of other components.
-- Transforming data from & to the transmission format, e.g. date/times from ISO 8601 to local time.
+**Binding** - an object that defines how to move data back and forth from the internal data format to the React form components used to edit that data.
 
-This library uses the term `field` to mean some value that needs to be moved back and forth between a Javascript object and a React component. Fields maintain a `state` property which contains `value` and `valid`, `disabled`, `visible`, `modified` and `readonly` propertes.  This `state` can be used to automatically update the corresponding React _bound component_.  A `bindings` object contains functions that updates the `value` property and the other fields as `value` changes.
+**Binding Definition** - a set of properties that define the *binding*.
 
-There are two types of bound components. Those that maintain a `value`, e.g. text input, checkbox, dropdown, and those that have no `value`, e.g. 'OK' and 'Cancel' buttons.  Components that do not maintain a value can still change their state based on the value of other bound components on the form.
+**Binder** - an object that manages a collection of *bindings*.
+
+**Bound Component** - a React component that uses a _binder_ to control it's state. There are two types of bound components. Those that maintain a `value` as part of their `state`, e.g. text input, checkbox, dropdown, and those that maintain no `value`, e.g. 'OK' and 'Cancel' buttons.  Non-`value` components can an still change their state based on the value of other bound components on the form.
 
 ## Step-by-Step
 
 Here are the step-by-step instructions to use the library for a React application:
 
-1. Add the `bindings` object as a static property of the class, ensuring an `isValid` at a minimum for each data field. `isValid` can be any truthy value or a function returning a truthy value.  Mark a field as `noValue` if it does not map to a property in the data object.
+1. Add the `bindings` definition object as a static property of the class, ensuring an `isValid` at a minimum for each binding. `isValid` can be any truthy value or a function returning a truthy value.  Mark a binding as `noValue` if it does not map to a property in the data object.
+
 2. Construct the `FormBinder` object in the form component `constructor()` and assign it to either `this.binder` (or `this.state.binder` if the bindings will be changing)
-3. Set the `binder` property of each _bound React component_ in the `form`. NOTE: Typically, you'll want to remove any existing `onChange` handlers if converting from a non-bound component and ensure a `name` proprty.  See below for how to create bound components.
+
+3. Set the `binder` property of each bound React component in the `form`.  Typically, you'll want to remove any existing `onChange` handlers if converting from a non-bound component and ensure a `name` proprty.  See below for how to create bound components.
+
 4. For HTML, in the `onSubmit` event handler method add `e.preventDefault()` (to avoid automatic form processing by HTML)
-5. Call `this.binder.getModifiedFieldValues()` to get an object with the modified field values at any time.
+
+5. Call `this.binder.getModifiedBindingValues()` to get an object with the modified values at any time.
 
 ## Class: `Bindings`
 
@@ -52,66 +60,51 @@ class MyFormComponent extends React.Component {
 }
 ```
 
-Each property of the `bindings` object must correspond to the `name` property of a bound component _and_ the name of the field in the bound data object.
+Each property of the `bindings` object must correspond to the `name` property of a React component in the form.
 
-You can use `.`'s in the name of the binding property. If you do this you must of course quote the binding name in Javascript.  In this way you create a binding between a nested data object in the transmission object.
+You can use `.`'s in the name of the binding property, but you must quote the name.  This create a *path* to a nested object within the internal data object.
 
-The following are the various properties you can set for a bound field.
+The following are the various properties you can set for a binding definition.
 
 ### Property: `noValue: bool`
 
-If `true`, indicates the field does not track a `value`. Only the `state.disabled`, `state.readOnly` and `state.visible` properties of the field change in response to the value of other validated fields.  Default is `false`.
+If `true`, indicates the binding does not track a `value`. Only the `state.disabled`, `state.readOnly` and `state.visible` properties of the binding change in response to the value of other bindings.  Default is `false`.
 
 ### Property: `initValue: any`
 
-Initial value to give the field if it is not present in the internal object.
+Initial `state.value` to give the binding if it is not present in the internal object.
 
 ### Property: `isDisabled: bool | (binder: FormBinder, value: any) => bool`
 
-A truthy value, or function returning a truthy value, that indicates determines `state.disabled` for the field.  It's up to the bound component to implement what disable looks like, e.g. graying out the component.
+A truthy value, or function returning a truthy value, that indicates determines `state.disabled` for the binding.  It's up to the bound component to implement what disable looks like, e.g. graying out the component.
 
 ### Property: `isReadOnly: bool | (binder: FormBinder, value: any) => bool`
 
-A truthy value, or function returning a truthy value, that determines `state.readOnly` for the field.  It's up to the bound component to implement what read-only looks & behaves like, e.g. prevent mouse clicks on the component.
+A truthy value, or function returning a truthy value, that determines `state.readOnly` for the binding.  It's up to the bound component to implement what read-only looks & behaves like, e.g. prevent mouse clicks on the component.
 
 ### Property: `initValue: any` (default: `""`)
 
-The value to give the field if its property is `undefined` in the internal object.
+The value to give the `state.value` if its property is `undefined` in the internal object.  This value will still be passed to the `pre` function if it exists.  The `binder` will never pass a property that is `undefined` in the original object, so use `initValue` if the bound component must have an actual value to function, even if that value is `null`.
 
 ### Function: `isVisible: bool | (binder: FormBinder, value: any) => bool`
 
-A truthy value, or function returning a truthy value, that determines `state.visible` for the field.  It's up to the bound component to implement looks like, but it should generally correspond to being hidden or not.
+A truthy value, or function returning a truthy value, that determines `state.visible` for the binding.  It's up to the bound component to implement looks like, but it should generally correspond to being hidden or not.
 
 ### Function: `isValid: bool | (binder: FormBinder, value: any) => bool`
 
-A truthy value, or function returning a truthy value, that determines `state.valid` for the field. It's up to the bound component to implement looks like, but generally you want to display some kind of error message when this is `false`.
+A truthy value, or function returning a truthy value, that determines `state.valid` for the binding. It's up to the bound component to implement looks like, but generally you want to display some kind of error message when this is `false`.
 
 ### Function: `pre (binder: FormBinder, value: any) => any`
 
-A function used to pre-process the field value for use by the bound component.
+A function used to pre-process the binding `value` for use by the bound component.
 
 ### Function: `post: (binder: FormBinder, value: any) => any`
 
-A function use to post-process the field value to a format used for internal data transmission or storage.
+A function use to post-process the binding `value` to a format used for internal data transmission or storage.
 
 ## Class: `FormBinder(obj: object, bindings: Bindings, onAnyModified: () => ())`
 
-An instance of the `FormBinder` class is responsible for handling binding and holds the state for the various bound components. This class does the following:
-
-- Automatically maps the object fields (properties) to equivalently named bound components in an HTML `form`.
-- Tracks the initial values of the object fields
-- Allows initialization of fields not present in the original object
-- Supports mapping objects containing nested objects into the form elements
-- Allows returning an object that has just the fields that have been modified from their original values
-- Allows specifying certain fields as `alwaysGet` to always include them when fetching just modified fields
-- Manages `value` & `valid` properties on behalf of a bound component that maintain a value.
-- Manages `disabled`, `visible`, `modified`, and `readOnly` states for all bound components
-- Fires update events when bound components are updated
-- Tracks `anyModified` and `allValid` values for the entire form
-- Generates an `onAnyModified` callback if `anyModified` changes state
-- Tracks an `_id` value for the object independently of form elements
-
-Here's an example of how to construct the class:
+The `FormBinder` class is responsible for holding a collection of bindings. Here's an example of how to construct the class:
 
 ```
 	this.state = {
@@ -144,31 +137,31 @@ This would be useful if you allow a forms contents to be changed by some other o
 
 ### Property: `id: string`
 
-This will be the value of any `_id` field on the original object. Typically, this value will be set for  existing objects that were retrieved from an API, and not set if the object is being created for the first time.  For this reason, it can be used in `binding` functions to determine if the object is being created for the first time or modified.
+This will be the value of any `_id` property on the original object. Typically, this value will be set for  existing objects that were retrieved from an API, and not set if the object is being created for the first time.  For this reason, it can be used in `binding` functions to determine if the object is being created for the first time or modified.
 
 ### Property: `originalObj: Object`
 
 The original object passed into the constructor.
 
-### Method: `getFieldState(name: string): ValueState | NoValueState`
+### Method: `getBindingState(name: string): ValueState | NoValueState`
 
-Called to get the state for a named field. Can be used by bound components, in `binding` callback functions and elsewhere.
+Called to get the state for a binding. Can be used by bound components, in `binding` callback functions and elsewhere.
 
-### Method: `getFieldValue(name: string): string`
+### Method: `getBindingValue(name: string): string`
 
-Called to get just the `state.value` for a field.  For `noValue` fields it will of course be `undefined`.
+Called to get just the `state.value` for a binding.  For `noValue` bindings it will of course be `undefined`.
 
-### Method: `updateFieldValue(name: string, newValue: any): State`
+### Method: `updateBindingValue(name: string, newValue: any): State`
 
-Called to update the value of the field by name.  Typically used in bound components in response to user input.  Will cause the state for all other bound components in the form to update their state also, if the change affect them.
+Called to update the value of the binding by name.  Typically used in bound components in response to user input.  Will cause the state for all other bound components in the form to update their state also, if the change affect them.
 
-### Method: `getModifiedFieldValues(): Object`
+### Method: `getModifiedBindingValues(): Object`
 
-Typically called by you when the `submit` button event is fired to get an object containing just the modified fields.
+Typically called by you when the `submit` button event is fired to get an object containing just the modified bindings.
 
 ## Class: `NoValueState`
 
-The object returned from `noValue` fields.
+The object returned from `noValue` bindings.
 
 ### Property: `valid: bool`
 
@@ -188,11 +181,11 @@ Is the bound component read-only?
 
 ## Class: `ValueState` extends `NoValueState`
 
-For fields with a value, `NoValueState` is extended with `value` and `modified` properties.
+For bindings with a value, `NoValueState` is extended with `value` and `modified` properties.
 
 ### Property: `value: any`
 
-The field value
+The binding value
 
 ### Property: `modified: bool`
 
@@ -252,7 +245,7 @@ export class BoundInput extends React.Component {
 
 In the constructor we `bind()` some methods to `this` and set the initial `state`.
 
-We also add an event listener for the `props.name` event.  The `FormBinder` will fire an event with the name of the field if some element of this fields `state`, other than `value`, changes because of another field value getting updated. The only way `value` should change is if this component updates it, or if the `binder` that this component is attached to changes.
+We also add an event listener for the `props.name` event.  The `FormBinder` will fire an event with the name of the binding if some element of this bindings `state`, other than `value`, changes because of another binding value getting updated. The only way `value` should change is if this component updates it, or if the `binder` that this component is attached to changes.
 
 We remove the listener in the unmount callback.
 
@@ -262,7 +255,7 @@ We remove the listener in the unmount callback.
     this.handleChange = this.handleChange.bind(this)
     this.updateValue = this.updateValue.bind(this)
     props.binder.addListener(props.name, this.updateValue)
-    this.state = props.binder.getFieldState(props.name)
+    this.state = props.binder.getBindingState(props.name)
   }
 
   updateValue(e) {
@@ -279,10 +272,10 @@ We implement the `handleChange` event which gets called every time the user type
 ```
   handleChange(e, data) {
     const { binder, name } = this.props
-    const state = binder.getFieldState(name)
+    const state = binder.getBindingState(name)
 
     if (!state.readOnly && !state.disabled) {
-      this.setState(binder.updateFieldValue(name, data.value))
+      this.setState(binder.updateBindingValue(name, data.value))
     }
   }
 ```
@@ -292,12 +285,12 @@ Now we handle the `binder` property changing in the parent form:
 ```
   componentWillReceiveProps(nextProps) {
     if (nextProps.binder !== this.props.binder) {
-      this.setState(nextProps.binder.getFieldState(nextProps.name))
+      this.setState(nextProps.binder.getBindingState(nextProps.name))
     }
   }
 ```
 
-Finally, the `render()` method to generate the DOM elements based on the `state` fields.
+Finally, the `render()` method to generate the DOM elements based on the binding `state`'s.
 
 ```
   render() {
@@ -315,3 +308,9 @@ Finally, the `render()` method to generate the DOM elements based on the `state`
     )
   }
 ```
+
+## Release Notes
+
+### 3.0.0
+
+Follows closely on the release of **2.0.x** because I decided to remove all use of the term _field_ and instead double down on the term _binding_.  This changes the API, which is breaking change and thus a major version number increment.  In my opinion it makes the entire library more consistent and much easier to learn and understand. This release also passed the initial value to `pre` and uses the resulting value as the unmodified value against which to compare the binding value.

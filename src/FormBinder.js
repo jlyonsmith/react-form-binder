@@ -1,47 +1,51 @@
 import EventEmitter from "eventemitter3"
 
 export class FormBinder extends EventEmitter {
-  constructor(originalObj, bindings, onAnyModified) {
+  constructor(originalObj, bindingDefs, onAnyModified) {
     super()
     this._id = originalObj._id
     this._onAnyModified = onAnyModified
-    this._fields = {}
+    this._bindings = {}
     this._originalObj = originalObj
 
-    for (let name in bindings) {
-      let binding = bindings[name]
-      let field = {
-        isDisabled: this._ensureFunc(binding.isDisabled, false),
-        isReadOnly: this._ensureFunc(binding.isReadOnly, false),
-        isVisible: this._ensureFunc(binding.isVisible, true),
-        noValue: !!binding.noValue,
+    for (let path in bindingDefs) {
+      let bindingDef = bindingDefs[path]
+      let binding = {
+        isDisabled: this._ensureFunc(bindingDef.isDisabled, false),
+        isReadOnly: this._ensureFunc(bindingDef.isReadOnly, false),
+        isVisible: this._ensureFunc(bindingDef.isVisible, true),
+        noValue: !!bindingDef.noValue,
       }
 
-      if (field.noValue) {
-        field.state = {}
+      if (binding.noValue) {
+        binding.state = {}
       } else {
-        field.alwaysGet = binding.alwaysGet
-        field.isValid = this._ensureFunc(binding.isValid, true, true)
+        binding.alwaysGet = bindingDef.alwaysGet
+        binding.isValid = this._ensureFunc(bindingDef.isValid, true, true)
 
-        let value = FormBinder._getObjectFieldValue(originalObj, name)
+        let value = FormBinder._getObjectPathValue(originalObj, path)
 
         if (typeof value === "undefined") {
           value =
-            typeof binding.initValue !== "undefined" ? binding.initValue : ""
+            typeof bindingDef.initValue !== "undefined"
+              ? bindingDef.initValue
+              : ""
         }
 
-        field.unmodifiedValue = value
-        field.post = field.post || ((v) => v)
-        field.state = {
-          value: binding.pre ? binding.pre(value) : value,
+        value = bindingDef.pre ? bindingDef.pre(value) : value
+
+        binding.unmodifiedValue = value
+        binding.post = binding.post || ((v) => v)
+        binding.state = {
+          value,
           modified: false,
         }
       }
 
-      this._fields[name] = field
+      this._bindings[path] = binding
     }
 
-    this._updateFieldStates()
+    this._updateBindingStates()
   }
 
   get id() {
@@ -69,100 +73,102 @@ export class FormBinder extends EventEmitter {
     }
   }
 
-  updateFieldValue(name, newValue) {
+  updateBindingValue(path, newValue) {
     let lastAnyModified = this.anyModified
-    let field = this._fields[name]
+    let binding = this._bindings[path]
 
-    if (field) {
-      if (field.noValue) {
-        throw new Error(`Attempt to update value for non-value field '${name}'`)
+    if (binding) {
+      if (binding.noValue) {
+        throw new Error(
+          `Attempt to update value for non-value binding '${path}'`
+        )
       }
 
-      field.state.value = newValue
-      field.state.modified = newValue !== field.unmodifiedValue
+      binding.state.value = newValue
+      binding.state.modified = newValue !== binding.unmodifiedValue
 
-      this._updateFieldStates(field)
+      this._updateBindingStates(binding)
 
       if (lastAnyModified !== this.anyModified && this._onAnyModified) {
         this._onAnyModified(this.anyModified)
       }
     }
 
-    return field.state
+    return binding.state
   }
 
-  _updateFieldStates() {
+  _updateBindingStates() {
     this.anyModified = false
     this.allValid = true
 
-    for (let name in this._fields) {
-      let field = this._fields[name]
+    for (let path in this._bindings) {
+      let binding = this._bindings[path]
 
-      // Do non-value fields after value fields and ignore any just changed field
-      if (field.noValue) {
+      // Do non-value bindings after value bindings and ignore any just changed binding
+      if (binding.noValue) {
         continue
       }
 
-      let valid = field.isValid(this, field.state.value, field.metadata)
+      let valid = binding.isValid(this, binding.state.value, binding.metadata)
 
-      // Only value fields can change these two properties
+      // Only value bindings can change these two properties
       this.allValid = valid && this.allValid
-      this.anyModified = field.state.modified || this.anyModified
+      this.anyModified = binding.state.modified || this.anyModified
 
-      Object.assign(field.state, {
+      Object.assign(binding.state, {
         valid,
-        disabled: field.isDisabled(this),
-        readOnly: field.isReadOnly(this),
-        visible: field.isVisible(this),
+        disabled: binding.isDisabled(this),
+        readOnly: binding.isReadOnly(this),
+        visible: binding.isVisible(this),
       })
     }
 
-    for (let name in this._fields) {
-      let field = this._fields[name]
+    for (let path in this._bindings) {
+      let binding = this._bindings[path]
 
-      if (!field.noValue) {
+      if (!binding.noValue) {
         continue
       }
 
-      let disabled = field.isDisabled(this)
-      let readOnly = field.isReadOnly(this)
-      let visible = field.isVisible(this)
+      let disabled = binding.isDisabled(this)
+      let readOnly = binding.isReadOnly(this)
+      let visible = binding.isVisible(this)
 
-      // Did the valid, disabled, read-only or visible state of this field change?
+      // Did the valid, disabled, read-only or visible state of this binding change?
       let anyChanges =
-        disabled !== field.state.disabled ||
-        readOnly !== field.state.readOnly ||
-        visible !== field.state.visible
+        disabled !== binding.state.disabled ||
+        readOnly !== binding.state.readOnly ||
+        visible !== binding.state.visible
 
       if (anyChanges) {
-        field.state = {
+        binding.state = {
           disabled,
           readOnly,
           visible,
         }
 
         // Fire an event so the component can update itself
-        this.emit(name, { name, state: field.state })
+        this.emit(path, { path, state: binding.state })
       }
     }
   }
 
-  getFieldValue(name) {
-    return this.getFieldState(name).value
+  getBindingValue(path) {
+    return this.getBindingState(path).value
   }
 
-  getFieldState(name) {
-    let field = this._fields[name]
+  getBindingState(path) {
+    let binding = this._bindings[path]
 
-    if (!field) {
-      throw new Error(`Field '${name}' does not have a binding entry`)
+    if (!binding) {
+      throw new Error(`There is no binding entry for '${path}'`)
     }
 
-    return field.state
+    return binding.state
   }
 
-  getModifiedFieldValues() {
-    // Generate an object that has the modified and alwaysGet fields
+  getModifiedBindingValues() {
+    // Generate an object that has the modified and alwaysGet bindings
     let obj = {}
 
     if (!this.anyModified && !this.allValid) {
@@ -174,31 +180,31 @@ export class FormBinder extends EventEmitter {
       obj._id = this._id
     }
 
-    for (let name in this._fields) {
-      let field = this._fields[name]
+    for (let path in this._bindings) {
+      let binding = this._bindings[path]
 
-      if (field.alwaysGet || (!field.noValue && field.state.modified)) {
-        let value = field.state.value
+      if (binding.alwaysGet || (!binding.noValue && binding.state.modified)) {
+        let value = binding.state.value
 
         if (value && value.constructor === "String") {
           value = value.trim()
 
-          if (value === field.unmodifiedValue) {
+          if (value === binding.unmodifiedValue) {
             continue
           }
         }
 
-        value = field.post ? field.post(value) : value
+        value = binding.post ? binding.post(value) : value
 
-        FormBinder._setObjectFieldValue(obj, name, value)
+        FormBinder._setObjectPathValue(obj, path, value)
       }
     }
 
     return obj
   }
 
-  static _getObjectFieldValue(obj, name) {
-    name.split(".").forEach((namePart) => {
+  static _getObjectPathValue(obj, path) {
+    path.split(".").forEach((namePart) => {
       if (obj) {
         obj = obj[namePart]
       }
@@ -206,8 +212,8 @@ export class FormBinder extends EventEmitter {
     return obj
   }
 
-  static _setObjectFieldValue(obj, name, value) {
-    name.split(".").forEach((namePart, i, nameParts) => {
+  static _setObjectPathValue(obj, path, value) {
+    path.split(".").forEach((namePart, i, nameParts) => {
       if (i < nameParts.length - 1) {
         if (!obj[namePart]) {
           obj[namePart] = {}

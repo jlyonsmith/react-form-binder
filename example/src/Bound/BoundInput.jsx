@@ -22,7 +22,7 @@ export class BoundInput extends React.Component {
     this.handleChange = this.handleChange.bind(this)
     this.updateValue = this.updateValue.bind(this)
     props.binder.addListener(props.name, this.updateValue)
-    this.state = props.binder.getFieldState(props.name)
+    this.state = props.binder.getBindingState(props.name)
   }
 
   updateValue(e) {
@@ -35,16 +35,16 @@ export class BoundInput extends React.Component {
 
   handleChange(e, data) {
     const { binder, name } = this.props
-    const state = binder.getFieldState(name)
+    const state = binder.getBindingState(name)
 
     if (!state.readOnly && !state.disabled) {
-      this.setState(binder.updateFieldValue(name, data.value))
+      this.setState(binder.updateBindingValue(name, data.value))
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.binder !== this.props.binder) {
-      this.setState(nextProps.binder.getFieldState(nextProps.name))
+      this.setState(nextProps.binder.getBindingState(nextProps.name))
     }
   }
 

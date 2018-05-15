@@ -144,11 +144,11 @@ export class RegularForm extends React.Component {
     },
     'admin-fields': {
       noValue: true,
-      isVisible: (r, v) => (r.getFieldValue('role') === 'administrator')
+      isVisible: (r, v) => (r.getBindingValue('role') === 'administrator')
     },
     'employee-fields': {
       noValue: true,
-      isVisible: (r, v) => (r.getFieldValue('role') !== 'employee')
+      isVisible: (r, v) => (r.getBindingValue('role') !== 'employee')
     },
     'cardNumber': {
       // TODO: Figure a way to put "v.length === m.mask.length" back in
@@ -184,7 +184,7 @@ export class RegularForm extends React.Component {
   handleSubmit(e) {
     e.preventDefault()
 
-    let obj = this.state.binder.getModifiedFieldValues()
+    let obj = this.state.binder.getModifiedBindingValues()
     const onSave = this.props.onSave
 
     if (obj && onSave) {

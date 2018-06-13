@@ -22,13 +22,22 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var FormBinder = exports.FormBinder = function (_EventEmitter) {
   _inherits(FormBinder, _EventEmitter);
 
-  function FormBinder(originalObj, bindingDefs, onAnyModified) {
+  function FormBinder(originalObj, bindingDefs, options) {
     _classCallCheck(this, FormBinder);
 
     var _this = _possibleConstructorReturn(this, (FormBinder.__proto__ || Object.getPrototypeOf(FormBinder)).call(this));
 
     _this._id = originalObj._id;
-    _this._onAnyModified = onAnyModified;
+
+    if (options) {
+      if (typeof options === "function") {
+        _this._onAnyModified = onAnyModified;
+      } else {
+        _this._onAnyModified = options.onAnyModified;
+        _this._readOnly = options.readOnly;
+      }
+    }
+
     _this._bindings = {};
     _this._originalObj = originalObj;
 
@@ -231,6 +240,11 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
     key: "id",
     get: function get() {
       return this._id;
+    }
+  }, {
+    key: "readOnly",
+    get: function get() {
+      return this._readOnly;
     }
   }, {
     key: "originalObj",

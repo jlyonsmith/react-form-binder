@@ -1,10 +1,19 @@
 import EventEmitter from "eventemitter3"
 
 export class FormBinder extends EventEmitter {
-  constructor(originalObj, bindingDefs, onAnyModified) {
+  constructor(originalObj, bindingDefs, options) {
     super()
     this._id = originalObj._id
-    this._onAnyModified = onAnyModified
+
+    if (options) {
+      if (typeof options === "function") {
+        this._onAnyModified = onAnyModified
+      } else {
+        this._onAnyModified = options.onAnyModified
+        this._readOnly = options.readOnly
+      }
+    }
+
     this._bindings = {}
     this._originalObj = originalObj
 
@@ -50,6 +59,10 @@ export class FormBinder extends EventEmitter {
 
   get id() {
     return this._id
+  }
+
+  get readOnly() {
+    return this._readOnly
   }
 
   get originalObj() {

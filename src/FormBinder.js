@@ -7,10 +7,11 @@ export class FormBinder extends EventEmitter {
 
     if (options) {
       if (typeof options === "function") {
-        this._onAnyModified = onAnyModified
+        this._onAnyModified = options
       } else {
         this._onAnyModified = options.onAnyModified
         this._readOnly = options.readOnly
+        this._metadata = options.metadata
       }
     }
 
@@ -63,6 +64,10 @@ export class FormBinder extends EventEmitter {
 
   get readOnly() {
     return this._readOnly
+  }
+
+  get metadata() {
+    return this._metadata
   }
 
   get originalObj() {
@@ -122,7 +127,7 @@ export class FormBinder extends EventEmitter {
         continue
       }
 
-      let valid = binding.isValid(this, binding.state.value, binding.metadata)
+      let valid = binding.isValid(this, binding.state.value)
 
       // Only value bindings can change these two properties
       this.allValid = valid && this.allValid

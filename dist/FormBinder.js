@@ -31,10 +31,11 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
 
     if (options) {
       if (typeof options === "function") {
-        _this._onAnyModified = onAnyModified;
+        _this._onAnyModified = options;
       } else {
         _this._onAnyModified = options.onAnyModified;
         _this._readOnly = options.readOnly;
+        _this._metadata = options.metadata;
       }
     }
 
@@ -144,7 +145,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
           continue;
         }
 
-        var valid = binding.isValid(this, binding.state.value, binding.metadata);
+        var valid = binding.isValid(this, binding.state.value);
 
         // Only value bindings can change these two properties
         this.allValid = valid && this.allValid;
@@ -245,6 +246,11 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
     key: "readOnly",
     get: function get() {
       return this._readOnly;
+    }
+  }, {
+    key: "metadata",
+    get: function get() {
+      return this._metadata;
     }
   }, {
     key: "originalObj",

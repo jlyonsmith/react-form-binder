@@ -78,7 +78,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       _this._bindings[path] = binding;
     }
 
-    _this._updateBindingStates();
+    _this._updateBindingAttributes();
     return _this;
   }
 
@@ -122,7 +122,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         binding.state.value = newValue;
         binding.state.modified = newValue !== binding.unmodifiedValue;
 
-        this._updateBindingStates(binding);
+        this._updateBindingAttributes();
 
         if (lastAnyModified !== this.anyModified && this._onAnyModified) {
           this._onAnyModified(this.anyModified);
@@ -132,15 +132,15 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       return binding.state;
     }
   }, {
-    key: "_updateBindingStates",
-    value: function _updateBindingStates() {
+    key: "_updateBindingAttributes",
+    value: function _updateBindingAttributes() {
       this.anyModified = false;
       this.allValid = true;
 
+      // Do value bindings first
       for (var path in this._bindings) {
         var binding = this._bindings[path];
 
-        // Do non-value bindings after value bindings and ignore any just changed binding
         if (binding.noValue) {
           continue;
         }
@@ -159,6 +159,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         });
       }
 
+      // Do non-value bindings second
       for (var _path in this._bindings) {
         var _binding = this._bindings[_path];
 
@@ -170,7 +171,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         var readOnly = _binding.isReadOnly(this);
         var visible = _binding.isVisible(this);
 
-        // Did the valid, disabled, read-only or visible state of this binding change?
+        // Did the disabled, read-only or visible state of this binding change?
         var anyChanges = disabled !== _binding.state.disabled || readOnly !== _binding.state.readOnly || visible !== _binding.state.visible;
 
         if (anyChanges) {
@@ -179,7 +180,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
             readOnly: readOnly,
             visible: visible
 
-            // Fire an event so the component can update itself
+            // Fire an event so the non-value component can update itself
           };this.emit(_path, { path: _path, state: _binding.state });
         }
       }

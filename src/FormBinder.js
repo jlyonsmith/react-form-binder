@@ -55,7 +55,7 @@ export class FormBinder extends EventEmitter {
       this._bindings[path] = binding
     }
 
-    this._updateBindingStates()
+    this._updateBindingAttributes()
   }
 
   get id() {
@@ -105,7 +105,7 @@ export class FormBinder extends EventEmitter {
       binding.state.value = newValue
       binding.state.modified = newValue !== binding.unmodifiedValue
 
-      this._updateBindingStates(binding)
+      this._updateBindingAttributes()
 
       if (lastAnyModified !== this.anyModified && this._onAnyModified) {
         this._onAnyModified(this.anyModified)
@@ -115,14 +115,14 @@ export class FormBinder extends EventEmitter {
     return binding.state
   }
 
-  _updateBindingStates() {
+  _updateBindingAttributes() {
     this.anyModified = false
     this.allValid = true
 
+    // Do value bindings first
     for (let path in this._bindings) {
       let binding = this._bindings[path]
 
-      // Do non-value bindings after value bindings and ignore any just changed binding
       if (binding.noValue) {
         continue
       }
@@ -141,6 +141,7 @@ export class FormBinder extends EventEmitter {
       })
     }
 
+    // Do non-value bindings second
     for (let path in this._bindings) {
       let binding = this._bindings[path]
 
@@ -152,7 +153,7 @@ export class FormBinder extends EventEmitter {
       let readOnly = binding.isReadOnly(this)
       let visible = binding.isVisible(this)
 
-      // Did the valid, disabled, read-only or visible state of this binding change?
+      // Did the disabled, read-only or visible state of this binding change?
       let anyChanges =
         disabled !== binding.state.disabled ||
         readOnly !== binding.state.readOnly ||
@@ -165,7 +166,7 @@ export class FormBinder extends EventEmitter {
           visible,
         }
 
-        // Fire an event so the component can update itself
+        // Fire an event so the non-value component can update itself
         this.emit(path, { path, state: binding.state })
       }
     }

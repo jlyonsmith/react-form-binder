@@ -66,11 +66,11 @@ export class FormBinder extends EventEmitter {
     return this._readOnly
   }
 
-  get getBindingMetadata() {
+  getBindingMetadata() {
     return JSON.parse(JSON.stringify(this._metadata))
   }
 
-  get getOriginalBindingValues() {
+  getOriginalBindingValues() {
     return JSON.parse(JSON.stringify(this._originalObj))
   }
 

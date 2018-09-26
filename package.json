@@ -36,16 +36,17 @@
   "homepage": "https://github.com/jlyonsmith/react-form-binder#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
+    "babel-core": "^6.26.3",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
-    "babel-preset-env": "^1.5.2",
+    "babel-preset-env": "^1.7.0",
     "jest": "^20.0.4",
-    "monzilla": "^1.0.5"
+    "monzilla": "^1.1.1"
   },
   "dependencies": {
     "eventemitter3": "^2.0.3",
-    "prop-types": "^15.5.10",
+    "fsevents": "^1.2.3",
+    "prop-types": "^15.6.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4"
   }

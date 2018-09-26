@@ -83,6 +83,16 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
   }
 
   _createClass(FormBinder, [{
+    key: "getBindingMetadata",
+    value: function getBindingMetadata() {
+      return JSON.parse(JSON.stringify(this._metadata));
+    }
+  }, {
+    key: "getOriginalBindingValues",
+    value: function getOriginalBindingValues() {
+      return JSON.parse(JSON.stringify(this._originalObj));
+    }
+  }, {
     key: "_ensureFunc",
     value: function _ensureFunc(obj, def, validator) {
       // If obj is a func and does not return bool there are problems, so we wrap it.
@@ -247,16 +257,6 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
     key: "readOnly",
     get: function get() {
       return this._readOnly;
-    }
-  }, {
-    key: "getBindingMetadata",
-    get: function get() {
-      return JSON.parse(JSON.stringify(this._metadata));
-    }
-  }, {
-    key: "getOriginalBindingValues",
-    get: function get() {
-      return JSON.parse(JSON.stringify(this._originalObj));
     }
   }], [{
     key: "_getObjectPathValue",

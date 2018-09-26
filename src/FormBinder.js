@@ -66,12 +66,12 @@ export class FormBinder extends EventEmitter {
     return this._readOnly
   }
 
-  get metadata() {
-    return this._metadata
+  get getBindingMetadata() {
+    return JSON.parse(JSON.stringify(this._metadata))
   }
 
-  get originalObj() {
-    return this._originalObj
+  get getOriginalBindingValues() {
+    return JSON.parse(JSON.stringify(this._originalObj))
   }
 
   _ensureFunc(obj, def, validator) {

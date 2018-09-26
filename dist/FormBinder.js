@@ -249,14 +249,14 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       return this._readOnly;
     }
   }, {
-    key: "metadata",
+    key: "getBindingMetadata",
     get: function get() {
-      return this._metadata;
+      return JSON.parse(JSON.stringify(this._metadata));
     }
   }, {
-    key: "originalObj",
+    key: "getOriginalBindingValues",
     get: function get() {
-      return this._originalObj;
+      return JSON.parse(JSON.stringify(this._originalObj));
     }
   }], [{
     key: "_getObjectPathValue",

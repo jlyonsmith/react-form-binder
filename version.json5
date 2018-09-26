@@ -7,13 +7,13 @@
   buildFormat: "full",
   tags: {
     major: 3,
-    minor: 1,
-    patch: 2,
-    build: 20180613,
+    minor: 2,
+    patch: 0,
+    build: 20180926,
     revision: 0,
     tz: "America/Los_Angeles",
     startYear: "2017",
-    sequence: 3
+    sequence: 4
   },
   fileTypes: [
     {

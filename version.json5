@@ -6,14 +6,14 @@
   ],
   buildFormat: "full",
   tags: {
-    major: 3,
-    minor: 2,
-    patch: 1,
+    major: 4,
+    minor: 0,
+    patch: 0,
     build: 20180926,
     revision: 0,
     tz: "America/Los_Angeles",
     startYear: "2017",
-    sequence: 5
+    sequence: 6
   },
   fileTypes: [
     {

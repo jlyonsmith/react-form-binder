@@ -59,12 +59,8 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
 
         var value = FormBinder._getObjectPathValue(originalObj, path);
 
-        if (typeof value === "undefined") {
-          value = typeof bindingDef.initValue !== "undefined" ? bindingDef.initValue : "";
-        }
-
         value = bindingDef.pre ? bindingDef.pre(value) : value;
-
+        value = typeof value === "undefined" ? "" : value;
         binding.unmodifiedValue = value;
         binding.post = bindingDef.post || function (v) {
           return v;
@@ -83,13 +79,13 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
   }
 
   _createClass(FormBinder, [{
-    key: "getBindingMetadata",
-    value: function getBindingMetadata() {
+    key: "getMetadata",
+    value: function getMetadata() {
       return JSON.parse(JSON.stringify(this._metadata));
     }
   }, {
-    key: "getOriginalBindingValues",
-    value: function getOriginalBindingValues() {
+    key: "getOriginalObject",
+    value: function getOriginalObject() {
       return JSON.parse(JSON.stringify(this._originalObj));
     }
   }, {
@@ -212,8 +208,8 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       return binding.state;
     }
   }, {
-    key: "getModifiedBindingValues",
-    value: function getModifiedBindingValues() {
+    key: "getDeltaObject",
+    value: function getDeltaObject() {
       // Generate an object that has the modified and alwaysGet bindings
       var obj = {};
 

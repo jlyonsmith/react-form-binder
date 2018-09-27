@@ -35,15 +35,8 @@ export class FormBinder extends EventEmitter {
 
         let value = FormBinder._getObjectPathValue(originalObj, path)
 
-        if (typeof value === "undefined") {
-          value =
-            typeof bindingDef.initValue !== "undefined"
-              ? bindingDef.initValue
-              : ""
-        }
-
         value = bindingDef.pre ? bindingDef.pre(value) : value
-
+        value = typeof value === "undefined" ? "" : value
         binding.unmodifiedValue = value
         binding.post = bindingDef.post || ((v) => v)
         binding.state = {
@@ -66,11 +59,11 @@ export class FormBinder extends EventEmitter {
     return this._readOnly
   }
 
-  getBindingMetadata() {
+  getMetadata() {
     return JSON.parse(JSON.stringify(this._metadata))
   }
 
-  getOriginalBindingValues() {
+  getOriginalObject() {
     return JSON.parse(JSON.stringify(this._originalObj))
   }
 
@@ -186,7 +179,7 @@ export class FormBinder extends EventEmitter {
     return binding.state
   }
 
-  getModifiedBindingValues() {
+  getDeltaObject() {
     // Generate an object that has the modified and alwaysGet bindings
     let obj = {}
 

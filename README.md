@@ -31,7 +31,7 @@ Here are the step-by-step instructions to use the library for a React applicatio
 
 4. For HTML, in the `onSubmit` event handler method add `e.preventDefault()` (to avoid automatic form processing by HTML)
 
-5. Call `this.binder.getModifiedBindingValues()` to get an object with the modified values at any time.
+5. Call `this.binder.getDeltaObject()` to get an object with just the modified values at any time.
 
 ## Class: `Bindings`
 
@@ -78,9 +78,9 @@ A truthy value, or function returning a truthy value, that indicates determines 
 
 A truthy value, or function returning a truthy value, that determines `state.readOnly` for the binding. It's up to the bound component to implement what read-only looks & behaves like, e.g. prevent mouse clicks on the component.
 
-### Property: `initValue: any` (default: `""`)
+### Property: `alwaysGet: bool`
 
-The value to give the `state.value` if its property is `undefined` in the internal object. This value will still be passed to the `pre` function if it exists. The `binder` will never pass a property that is `undefined` in the original object, so use `initValue` if the bound component must have an actual value to function, even if that value is `null`. For example, you may have a property of the internal object that is a rectangle stored as an array of 4 numbers. You may want to edit this as a string in an HTML INPUT control. You might set `initValue` to `[0,0,0,0]`. This would then get passed to `pre` and be converted to a string for editing. Or, if you have a cool "4 number editing component" you might pass the array through to it directly.
+Setting this on a binding means this value will always be returned in a call to `getDeltaObject` even if it has not changed.
 
 ### Function: `isVisible: bool | (binder: FormBinder, value: any) => bool`
 
@@ -92,11 +92,13 @@ A truthy value, or function returning a truthy value, that determines `state.val
 
 ### Function: `pre (binder: FormBinder, value: any) => any`
 
-A function used to pre-process the binding `value` for use by the bound component.
+A function used to pre-process the original object property for use as the binding value in the bound component. The binder looks through the binding names to find values in the original object. If a value is `undefined` the binder will use `""` as the binding value by default. You can use this function to override that behavior.
+
+For example, the original object may have a boolean property. If you want to use this value to set a checkbox INPUT control, you might set `pre: v => v || false` so that the checkbox has a valid value, even if the field is not initially set.
 
 ### Function: `post: (binder: FormBinder, value: any) => any`
 
-A function use to post-process the binding `value` to a format used for internal data transmission or storage.
+A function use to post-process the binding `value` to a format used in the original object.
 
 ## Class: `FormBinder(obj: object, bindings: Bindings, onAnyModified: () => ())`
 
@@ -135,11 +137,11 @@ This would be useful if you allow a forms contents to be changed by some other o
 
 This will be the value of any `_id` property on the original object. Typically, this value will be set for existing objects that were retrieved from an API, and not set if the object is being created for the first time. For this reason, it can be used in `binding` functions to determine if the object is being created for the first time or modified.
 
-### Property: `getOriginalBindingValues: Object`
+### Property: `getOriginalObject: Object`
 
 A copy of the original object passed into the constructor.
 
-### Property: `getBindingMetadata: Object`
+### Property: `getMetadata: Object`
 
 A copy of any metadata passed to the binder.
 
@@ -155,9 +157,9 @@ Called to get just the `state.value` for a binding. For `noValue` bindings it wi
 
 Called to update the value of the binding by name. Typically used in bound components in response to user input. Will cause the state for all other bound components in the form to update their state also, if the change affect them.
 
-### Method: `getModifiedBindingValues(): Object`
+### Method: `getDeltaObject(): Object`
 
-Returns an object containing just the modified binding values. Typically called by you when the `submit` button event is fired to get an object containing just the modified values to send to an API. You can also use a spread operator to blend this with the original values.
+Returns an object containing _just_ the modified binding values, the object `_id` and any bindings marked as `alwaysGet`. All the binding values are passed through any configured `post` function so they are in the original object data format. For example, you might call this when a `submit` button is clicked to get an object containing just the modified values to send to an API. You can also use a spread operator to blend this with the original values returned from `getOriginalObject`.
 
 ## Class: `NoValueState`
 

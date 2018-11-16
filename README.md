@@ -33,9 +33,9 @@ Here are the step-by-step instructions to use the library for a React applicatio
 
 5. Call `this.binder.getDeltaObject()` to get an object with just the modified values at any time.
 
-## Class: `Bindings`
+## Class: `Binding`
 
-Bound forms work using a `bindings` object that should be declared as a `static` property of the `form` component. Here is an example:
+Bound forms work using an array of `Binding` objects that should be declared as a `static` property of the `form` component. Here is an example:
 
 ```
 class MyFormComponent extends React.Component {

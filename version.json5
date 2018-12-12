@@ -8,12 +8,12 @@
   tags: {
     major: 4,
     minor: 0,
-    patch: 1,
+    patch: 2,
     build: 20181211,
     revision: 0,
     tz: "America/Los_Angeles",
     startYear: "2017",
-    sequence: 7
+    sequence: 8
   },
   fileTypes: [
     {

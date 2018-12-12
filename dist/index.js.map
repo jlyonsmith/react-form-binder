@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/index.js"],"names":["FormBinder"],"mappings":";;;;;;;;;;;uBAASA,U","file":"index.js","sourcesContent":["export { FormBinder } from './FormBinder'\n"]}
+{"version":3,"sources":["../src/index.js"],"names":[],"mappings":";;;;;;;;;;;;AAAA","sourcesContent":["export { FormBinder } from './FormBinder'\n"],"file":"index.js"}

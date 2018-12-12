@@ -3,30 +3,41 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.FormBinder = undefined;
+exports.FormBinder = void 0;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _eventemitter = require("eventemitter3");
-
-var _eventemitter2 = _interopRequireDefault(_eventemitter);
+var _eventemitter = _interopRequireDefault(require("eventemitter3"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var FormBinder = exports.FormBinder = function (_EventEmitter) {
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var FormBinder =
+/*#__PURE__*/
+function (_EventEmitter) {
   _inherits(FormBinder, _EventEmitter);
 
   function FormBinder(originalObj, bindingDefs, options) {
+    var _this;
+
     _classCallCheck(this, FormBinder);
 
-    var _this = _possibleConstructorReturn(this, (FormBinder.__proto__ || Object.getPrototypeOf(FormBinder)).call(this));
-
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(FormBinder).call(this));
     _this._id = originalObj._id;
 
     if (options) {
@@ -62,9 +73,11 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         value = bindingDef.pre ? bindingDef.pre(value) : value;
         value = typeof value === "undefined" ? "" : value;
         binding.unmodifiedValue = value;
+
         binding.post = bindingDef.post || function (v) {
           return v;
         };
+
         binding.state = {
           value: value,
           modified: false
@@ -75,6 +88,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
     }
 
     _this._updateBindingAttributes();
+
     return _this;
   }
 
@@ -122,7 +136,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
 
       if (binding) {
         if (binding.noValue) {
-          throw new Error("Attempt to update value for non-value binding '" + path + "'");
+          throw new Error("Attempt to update value for non-value binding '".concat(path, "'"));
         }
 
         binding.state.value = newValue;
@@ -141,9 +155,8 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
     key: "_updateBindingAttributes",
     value: function _updateBindingAttributes() {
       this.anyModified = false;
-      this.allValid = true;
+      this.allValid = true; // Do value bindings first
 
-      // Do value bindings first
       for (var path in this._bindings) {
         var binding = this._bindings[path];
 
@@ -151,21 +164,19 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
           continue;
         }
 
-        var valid = binding.isValid(this, binding.state.value);
+        var valid = binding.isValid(this, binding.state.value); // Only value bindings can change these two properties
 
-        // Only value bindings can change these two properties
         this.allValid = valid && this.allValid;
         this.anyModified = binding.state.modified || this.anyModified;
-
         Object.assign(binding.state, {
           valid: valid,
           disabled: binding.isDisabled(this),
           readOnly: binding.isReadOnly(this),
           visible: binding.isVisible(this)
         });
-      }
+      } // Do non-value bindings second
 
-      // Do non-value bindings second
+
       for (var _path in this._bindings) {
         var _binding = this._bindings[_path];
 
@@ -174,20 +185,25 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
         }
 
         var disabled = _binding.isDisabled(this);
-        var readOnly = _binding.isReadOnly(this);
-        var visible = _binding.isVisible(this);
 
-        // Did the disabled, read-only or visible state of this binding change?
+        var readOnly = _binding.isReadOnly(this);
+
+        var visible = _binding.isVisible(this); // Did the disabled, read-only or visible state of this binding change?
+
+
         var anyChanges = disabled !== _binding.state.disabled || readOnly !== _binding.state.readOnly || visible !== _binding.state.visible;
 
         if (anyChanges) {
           _binding.state = {
             disabled: disabled,
             readOnly: readOnly,
-            visible: visible
+            visible: visible // Fire an event so the non-value component can update itself
 
-            // Fire an event so the non-value component can update itself
-          };this.emit(_path, { path: _path, state: _binding.state });
+          };
+          this.emit(_path, {
+            path: _path,
+            state: _binding.state
+          });
         }
       }
     }
@@ -202,7 +218,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
       var binding = this._bindings[path];
 
       if (!binding) {
-        throw new Error("There is no binding entry for '" + path + "'");
+        throw new Error("There is no binding entry for '".concat(path, "'"));
       }
 
       return binding.state;
@@ -215,9 +231,9 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
 
       if (!this.anyModified && !this.allValid) {
         return obj;
-      }
+      } // Will have an _id if updating
 
-      // Will have an _id if updating
+
       if (this._id) {
         obj._id = this._id;
       }
@@ -272,6 +288,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
           if (!obj[namePart]) {
             obj[namePart] = {};
           }
+
           obj = obj[namePart];
         } else {
           obj[namePart] = value;
@@ -281,5 +298,7 @@ var FormBinder = exports.FormBinder = function (_EventEmitter) {
   }]);
 
   return FormBinder;
-}(_eventemitter2.default);
+}(_eventemitter.default);
+
+exports.FormBinder = FormBinder;
 //# sourceMappingURL=FormBinder.js.map
